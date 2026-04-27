@@ -1,0 +1,405 @@
+# 丝绸生活 SOP v5.1 — 17 slot 候选池
+# 每个 slot 是一个可复用的 listing 图组件。slot_planner.py 根据 product_axes 评分选 8 个。
+#
+# 字段：
+#   id            — slot 唯一 id（snake-case）
+#   title         — 中文一句话主题（仅 doc 用）
+#   priority      — 显示顺序权重（hero=10, scene=20, feature=30, ergo/material=40, step=50, lifestyle=60, trust/quantity/competitor=70, abstract=80）
+#   triggers      — 命中产品维度时 +score；archetype 命中 +2，其他维度命中 +1
+#   render        — codex prompt 模板片段（{var} 占位符由 render_slot.py 填充）
+#   required_fields — render 用到的 standard_sku 字段（缺则降权或跳过）
+#
+# 必出：hero-product。其他 16 按 score 取 top-7。
+
+slots:
+  - id: hero-product
+    title: 主图 — 产品+brand+key spec+steel pill
+    priority: 10
+    triggers:
+      always: true
+    required_fields: [product_name_ru, key_spec_ru]
+    render: |
+      Russian e-commerce main listing image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Product centered, occupies 55-65% of canvas, soft studio lighting from upper-left.
+      - Background: {palette_bg_main} with subtle {palette_bg_accent} gradient bottom.
+      - Top center, two-line title hierarchy:
+        * Small kicker (uppercase): "{title_top}"
+        * Large bold below: "{title_main}"
+      - Left side: round badge with green outline, top text "{key_spec_ru}", bottom text "{key_spec_label_ru}"
+      - Bottom center: green pill badge "{steel_badge_ru}"
+
+      Style: {palette_style_descriptor}.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: scene-grid-4
+    title: 4 用途场景网格
+    priority: 20
+    triggers:
+      archetype: [tool, cosmetic-care, consumable]
+      scene_breadth: [multi-material]
+    required_fields: [scene_grid_title, scene_grid_labels]
+    render: |
+      Russian e-commerce usage-scenarios grid image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: large bold title "{scene_grid_title}" (centered, 2 lines max)
+      - Below: 2x2 grid of square cells with rounded corners and subtle white frame
+      - Each cell: hand holding product cutting/applying to {grid_material_i}, photo-realistic
+      - Bottom of each cell: small Russian one-word label ({label_1} / {label_2} / {label_3} / {label_4})
+      - Background between cells: {palette_bg_main}
+
+      Style: {palette_style_descriptor}, hands and product fully consistent across all 4 cells.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: scene-list-text
+    title: 多场景文字列表（无 4 宫格图）
+    priority: 20
+    triggers:
+      archetype: [auto-part, tool]
+      scene_breadth: [multi-audience]
+    required_fields: [scene_list_title, scene_list_items]
+    render: |
+      Russian e-commerce versatility-list image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: large bold title "{scene_list_title}" (1-2 lines, may include • dotted bullets across one line)
+      - Center: hero product photo (50% of canvas), dramatic side-lighting, on {palette_bg_main}
+      - Bottom-left: 2-3 short Russian list items, each prefixed with "•":
+        {scene_list_items_block}
+
+      Style: {palette_style_descriptor}, text-heavy with strong hierarchy, no extra props.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: angle-feature
+    title: 关键参数+ ✓ bullets
+    priority: 30
+    triggers:
+      archetype: [tool, auto-part]
+      has_strong_metric: [true]
+    required_fields: [feature_title, feature_metric, feature_bullets]
+    render: |
+      Russian e-commerce key-feature image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: large bold title "{feature_title}" (2 lines), {palette_text_main} color
+      - Optional subtitle below in smaller {palette_text_sub} color: "{feature_subtitle}"
+      - Center: product photo with realistic workspace props (papers, washi tape, ruler) on {palette_bg_main}
+      - Overlay: green arc/curve with central spec label "{feature_metric}" (e.g. "30°" or "9 мм")
+      - Bottom: 3 horizontal bullets, each prefixed with green ✓:
+        ✓ {bullet_1}
+        ✓ {bullet_2}
+        ✓ {bullet_3}
+
+      Style: {palette_style_descriptor}, technical-but-warm, photo-realistic product.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: dimension-spec
+    title: 尺寸标注图
+    priority: 30
+    triggers:
+      # 收紧：只在工业精密件触发，普通工具不需要 dimension-spec
+      archetype: [auto-part]
+      precision_critical: [true]
+    required_fields: [dimension_title, dimension_callouts]
+    render: |
+      Russian e-commerce dimension-spec image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: bold title "{dimension_title}" in {palette_text_main} color (2 lines)
+      - Center: product photo with multiple dimension callouts in dark grey lines + arrows + numeric labels
+      - Each callout: arrow points to a measured edge, label shows "{value} мм" in dark navy text
+      - Callouts list:
+        {dimension_callouts_block}
+      - Background: {palette_bg_main} with subtle {palette_bg_accent} gradient
+
+      Style: {palette_style_descriptor}, engineering-drawing-friendly, no extra props.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: ergo-handhold
+    title: 体感+人体工学
+    priority: 40
+    triggers:
+      tactile_value: [high]
+    required_fields: [ergo_title, ergo_bullets]
+    render: |
+      Russian e-commerce ergonomics image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top-left: bold title "{ergo_title}" (2 lines), {palette_text_main} color
+      - Right-center: 3 vertical bullets with • prefix, each 2 lines:
+        • {ergo_bullet_1}
+        • {ergo_bullet_2}
+        • {ergo_bullet_3}
+      - Lower 60% of canvas: a relaxed clean human hand naturally holding the product at a 20° angle, soft natural light from upper-left
+      - Background: {palette_bg_main} with shallow workspace hint (pencil, paper, soft props)
+
+      Style: {palette_style_descriptor}, human and product dominate, text supports.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: material-tech
+    title: 材质技术段+产品分解
+    priority: 40
+    triggers:
+      durability_centrality: [core]
+      archetype: [tool, auto-part]
+    required_fields: [material_title, material_paragraph]
+    render: |
+      Russian e-commerce material-tech image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top 35%: bold title "{material_title}" + 3-4 lines of body paragraph in {palette_text_sub} color:
+        "{material_paragraph}"
+      - Lower 65%: {palette_bg_accent} soft background, product body shown as exploded view
+        (main body + 3-4 detached components/blades scattered around at angles, all preserved exactly from reference image)
+
+      Style: {palette_style_descriptor}, premium product photography emphasizing material quality.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: before-after
+    title: 使用前后效果对比（可含症状 icon 变种）
+    priority: 35
+    triggers:
+      effect_visibility: [strong-before-after]
+      archetype: [cosmetic-care, consumable]
+    required_fields: [before_after_title]
+    render: |
+      Russian e-commerce before/after image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: bold title "{before_after_title}" (often "{title_top}", e.g. "САЛОННЫЙ ЭФФЕКТ")
+      - Top half: "ДО" label with photo of subject in problematic state ({before_state_desc})
+      - Bottom half: "ПОСЛЕ" label with photo of subject improved ({after_state_desc})
+      - Same subject angle and lighting between halves for fair comparison
+      - Optional symptom icons (right column when applicable):
+        {symptom_icons_block}
+
+      Style: {palette_style_descriptor}, identical subject framing top vs bottom.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: product-callouts
+    title: 产品多点圈注
+    priority: 35
+    triggers:
+      callout_points: [3, 4, 5, 6]
+    required_fields: [callouts_title, callouts]
+    render: |
+      Russian e-commerce product-callouts image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: title "{callouts_title}"
+      - Center: hero product photo (60% of canvas) on {palette_bg_main}
+      - Around the product: callout dots + connector lines pointing to specific features:
+        {callouts_block}
+      - Each callout: small dot on product → thin line → label box with bold short text + 1 line description
+
+      Style: {palette_style_descriptor}, infographic clarity, product fully visible.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: install-steps
+    title: 使用步骤 1/2/3
+    priority: 50
+    triggers:
+      use_complexity: [multi-step]
+    required_fields: [install_title, install_steps]
+    render: |
+      Russian e-commerce installation/usage steps image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: title "{install_title}" (e.g. "Простая и быстрая установка")
+      - Layout option A (3 equal cells stacked): for each step:
+        * Number "{n}" in green pill on left
+        * Photo of step on right showing the action
+        * Short Russian caption: "{step_caption_n}"
+      - Layout option B (1 large + 2 small): step 1 large at top, steps 2+3 side-by-side below
+      - Steps:
+        {install_steps_block}
+
+      Style: {palette_style_descriptor}, real-world action shots, hands always visible.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: structure-steps
+    title: 结构分解 1/2/3 + 耐久 caption
+    priority: 50
+    triggers:
+      durability_centrality: [core]
+      components_gt_1: [true]
+    required_fields: [structure_caption]
+    render: |
+      Russian e-commerce structure-explode image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Three product views, top-down arrangement, each labeled with green numbered badge:
+        ① assembled product (whole)
+        ② component(s) detached, showing the disassembly
+        ③ replacement component being inserted/extended
+      - Connection lines/arrows between steps to show flow
+      - Bottom: underlined long caption "{structure_caption}"
+      - Background: {palette_bg_accent} with subtle gradient
+
+      Style: {palette_style_descriptor}, technical clarity, product preserved exactly from reference.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: lifestyle-female
+    title: 真人场景 A（金发女子日用，办公/开箱风）
+    priority: 60
+    triggers:
+      lifestyle_value: [high, medium]
+    required_fields: [lifestyle_title, lifestyle_scene_en]
+    render: |
+      Russian e-commerce lifestyle image (variant A — work/office context), vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top-left or top-right: underlined title "{lifestyle_title}" (2 lines), {palette_text_main} color
+      - Main scene: 25-35 year old woman with light-blonde hair, wearing a light-blue collared shirt and casual jeans
+      - She is naturally using the product to do: {lifestyle_scene_en}
+      - Setting (variant A): bright indoor daylight near a window, light wood/desk surface, soft focus background
+      - Mood: relaxed, confident, candid (NOT staged or posed)
+
+      Style: {palette_style_descriptor}, photo-realistic editorial lifestyle photography.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: lifestyle-female-b
+    title: 真人场景 B（同模特不同环境，家居/工艺风）
+    priority: 65
+    triggers:
+      # 仅在 lifestyle_value=high 时出第 2 张
+      lifestyle_value: [high]
+    required_fields: [lifestyle_b_title, lifestyle_b_scene_en]
+    render: |
+      Russian e-commerce lifestyle image (variant B — home/craft context), vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top-right or top-left: underlined title "{lifestyle_b_title}" (2 lines), {palette_text_main} color
+      - Main scene: SAME 25-35 year old woman with light-blonde hair (continuity with variant A), now in casual home wear (jeans + relaxed shirt)
+      - She is doing a different task with the product: {lifestyle_b_scene_en}
+      - Setting (variant B): home interior — could be a craft floor, a kitchen, a renovation/workshop, or a living room
+      - Mood: warm, capable, lived-in
+
+      Style: {palette_style_descriptor}, photo-realistic editorial lifestyle photography. The model and product MUST visually match variant A (same hair, same actor).
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: audience-fit
+    title: 用户/对象多样
+    priority: 60
+    triggers:
+      scene_breadth: [multi-audience]
+      archetype: [lifestyle-accessory, cosmetic-care]
+    required_fields: [audience_title, audience_segments]
+    render: |
+      Russian e-commerce audience-fit image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: title "{audience_title}" (often "ПОДХОДИТ ДЛЯ ...")
+      - Upper half: 2 photos side-by-side, each showing a distinct audience/object:
+        * Left: {audience_segment_1_desc} with green label "{audience_segment_1_label}"
+        * Right: {audience_segment_2_desc} with green label "{audience_segment_2_label}"
+      - Lower half: 1 large photo showing universal/family use: {audience_segment_universal_desc}
+
+      Style: {palette_style_descriptor}, candid lifestyle shots showing real people/objects.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: trust-badge
+    title: 质保/工厂背书
+    priority: 70
+    triggers:
+      trust_pressure: [high]
+      durability_centrality: [core]
+    required_fields: [trust_top, trust_bottom]
+    render: |
+      Russian e-commerce trust-badge image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top center: large bold trust headline "{trust_top}" (e.g. "НАДЁЖНОЕ КАЧЕСТВО")
+      - Center: hero product photo, dramatic spotlight on {palette_bg_main} background
+      - Bottom center: smaller line "{trust_bottom}" (e.g. "ФАБРИЧНОЕ ПРОИЗВОДСТВО")
+      - Optional: corner stamp/seal badge if trust_seal_label is provided
+
+      Style: {palette_style_descriptor}, premium brand-statement aesthetic.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: quantity-pack
+    title: 数量+包装组合
+    priority: 70
+    triggers:
+      pack_count: [n-pack]
+    required_fields: [quantity_value, quantity_label]
+    render: |
+      Russian e-commerce quantity-pack image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Background: {palette_bg_main}
+      - Center: stack of N units of the product arranged at slight angles to suggest abundance
+      - Large overlay: bold "{quantity_value}" (e.g. "30 шт") at top-right
+      - Optional sub-label: "{quantity_label}" (e.g. "В НАБОРЕ" or "УПАКОВКА")
+      - Optional: pack box visible in bottom corner if pack_box_visible
+
+      Style: {palette_style_descriptor}, abundant generous-pack feel.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: vs-competitor
+    title: 与竞品对比
+    priority: 70
+    triggers:
+      # 仅在 competitor_pressure=high 时考虑（不要靠 archetype 拿白送分）
+      competitor_pressure: [high]
+    required_fields: [competitor_title, competitor_bullets]
+    render: |
+      Russian e-commerce vs-competitor image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: bold title "{competitor_title}"
+      - Layout: split horizontally into LEFT 40% and RIGHT 60%:
+        * LEFT: a generic ordinary alternative (desaturated, photographed identically, dull lighting)
+          - Caption above in RED: "✗ ОБЫЧНЫЙ"
+          - 3 grey ✗ bullets below: {competitor_negative_bullets}
+        * RIGHT: the actual product (vibrant, sharp, hero lighting)
+          - Caption above in GREEN: "✓ НАШ"
+          - 3 white-on-{palette_bg_accent} ✓ bullets below: {competitor_positive_bullets}
+      - Both halves shot from identical angle for fair comparison
+
+      Style: {palette_style_descriptor}, clean infographic comparison, NO competitor brand identifiers.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: icon-feature-grid
+    title: 5-6 抽象 icon + 短 caption
+    priority: 80
+    triggers:
+      is_consumable: [true]
+      archetype: [consumable, cosmetic-care]
+    required_fields: [icon_features]
+    render: |
+      Russian e-commerce icon-feature-grid image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Background: {palette_bg_main} (soft tinted)
+      - Upper 60%: 5-6 round black-fill circular icon badges arranged in a loose flowing grid (not strict rows)
+        Each badge: white pictographic icon inside (no text), 60-80px diameter
+        Below each badge: 2-line short caption in dark text:
+        {icon_features_block}
+      - Lower 40%: hero product photo (small, ~30% of canvas) centered
+
+      Style: {palette_style_descriptor}, infographic playfulness with brand consistency.
+      Render Cyrillic text exactly: {cyrillic_strings}.
+
+  - id: mechanism-cycle
+    title: 循环工作原理
+    priority: 80
+    triggers:
+      is_consumable: [true]
+      mechanism_recoverable: [true]
+    required_fields: [cycle_title, cycle_phase_a, cycle_phase_b]
+    render: |
+      Russian e-commerce mechanism-cycle image, vertical 3:4 (1024x1536px), {palette_name} style.
+
+      Composition:
+      - Top: title "{cycle_title}" (e.g. "Способ восстановления")
+      - Center: two large circular labels connected by curved bidirectional arrows:
+        * Left/upper circle (green tint): "{cycle_phase_a}" (e.g. "Эффективен до 6 месяцев")
+        * Right/lower circle (orange/yellow tint): "{cycle_phase_b}" (e.g. "Прогрев на солнце 3-4ч в месяц")
+        * Arrows between labeled with short verbs/phrases like "Восстановление активности"
+      - Bottom: hero product photo on a kitchen/usage-context background, slightly out of focus
+
+      Style: {palette_style_descriptor}, infographic cycle clarity.
+      Render Cyrillic text exactly: {cyrillic_strings}.

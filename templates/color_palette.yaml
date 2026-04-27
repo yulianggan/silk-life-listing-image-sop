@@ -1,0 +1,54 @@
+# 类目→视觉色温映射（slot_planner 读取，覆盖 ozon-listing-image/prompts.py 的默认 _PALETTE）
+# 用 yaml 是为了让运营改起来更直观
+
+categories:
+  生活类:
+    primary: "mint green #A8E063"
+    secondary: "warm yellow"
+    scene: "clean kitchen / fresh produce / bedroom"
+    badges_ru: ["БЕЗ ОТДУШКИ", "ХИТ", "ЭКО"]
+  工具类:
+    primary: "deep navy #1B2A4E"
+    secondary: "metallic gold / silver"
+    scene: "clean workbench / tool drawer"
+    badges_ru: ["ПРОЧНЫЙ", "ОСТРЫЙ", "ЯПОНСКАЯ СТАЛЬ"]
+  default:
+    primary: "mint green #A8E063"
+    secondary: "white"
+    scene: "clean studio"
+    badges_ru: ["ХИТ ПРОДАЖ"]
+
+# 每个 slot 默认参数
+slot_defaults:
+  main:
+    quality: medium         # high 在 jiekou.ai 上偶发 Empty reply（>180s 超时），medium 更稳
+    n: 1
+    refs_count: 1           # jiekou.ai 多图传参有 bug（Duplicate parameter），暂限 1 张
+  detail-size:
+    quality: medium
+    n: 1
+    refs_count: 1
+  detail-compare:
+    quality: medium
+    n: 1
+    refs_count: 1
+  material:
+    quality: medium
+    n: 1
+    refs_count: 1
+  use-scene:
+    quality: medium
+    n: 1
+    refs_count: 1           # 同上，多图暂禁用
+  hand-demo:                 # 第 8 个图位：手部演示，"丝绸生活"独立强势元素
+    quality: medium
+    n: 1
+    refs_count: 1
+  package:
+    quality: medium
+    n: 1
+    refs_count: 1
+  cert-review:
+    quality: low            # 信任徽章图，low 够
+    n: 1
+    refs_count: 1

@@ -1,0 +1,59 @@
+# 丝绸生活 SOP v5.1 — 3 风格族（按 product material_style + target_user_warmth 自动派生）
+# 不再按类目硬编码 — 由 product_axes_inferrer.py 推断后选 palette。
+#
+# 每 palette 提供给 render_slot.py 的占位符值：
+#   palette_name, palette_bg_main, palette_bg_accent,
+#   palette_text_main, palette_text_sub,
+#   palette_style_descriptor
+
+palettes:
+  warm-luxury:
+    # 美工刀类 — translucent-soft + warm-feminine
+    palette_name: "warm-luxury"
+    palette_bg_main: "off-white #F5F1EB (warm cream)"
+    palette_bg_accent: "soft mint #C9DDC4 (gentle gradient)"
+    palette_text_main: "deep slate #2C3E50"
+    palette_text_sub: "warm grey #6B7280"
+    palette_pill_color: "muted forest green #4A7C59"
+    palette_check_color: "fresh green #27AE60"
+    palette_style_descriptor: "warm-luxury aesthetic — soft natural lighting, refined sans-serif Cyrillic, generous negative space, light optimistic mood"
+    matches:
+      product_finish: [translucent-soft, matte-textured]
+      target_user_warmth: [warm-feminine, neutral-pro]
+
+  clean-minimal:
+    # 指甲剪类 — matte-soft + warm-feminine — 偏粉色
+    palette_name: "clean-minimal"
+    palette_bg_main: "blush cream #FAF7F4"
+    palette_bg_accent: "rose pink #F5D6D6 (subtle wash)"
+    palette_text_main: "deep grey #2A2A2A"
+    palette_text_sub: "rose grey #8B7E7E"
+    palette_pill_color: "sage green #A8C0A0"
+    palette_check_color: "sage green #A8C0A0"
+    palette_style_descriptor: "clean-minimal aesthetic — soft pink/cream wash, elegant rounded sans-serif Cyrillic, abundant whitespace, calm-precise mood"
+    matches:
+      product_finish: [matte-soft, polished-metal]
+      target_user_warmth: [warm-feminine]
+
+  industrial-burst:
+    # 轮胎充气接头类 — metallic-shiny + masculine-rugged
+    palette_name: "industrial-burst"
+    palette_bg_main: "deep black #1A1A1A"
+    palette_bg_accent: "fiery red-orange #FF4D00 (radial neon glow)"
+    palette_text_main: "white #FFFFFF (bold)"
+    palette_text_sub: "warm gold #D4AF37"
+    palette_pill_color: "electric yellow #F1C40F"
+    palette_check_color: "neon green #2ECC71"
+    palette_style_descriptor: "industrial-burst aesthetic — dark dramatic background with neon accents, heavy bold sans-serif Cyrillic, lightning/spark motifs, high-energy commanding mood"
+    matches:
+      product_finish: [metallic-shiny]
+      target_user_warmth: [masculine-rugged, neutral-pro]
+
+# 派生规则（slot_planner.py 调用）
+#
+# 输入：
+#   spec.material_style (matte-soft / metallic-shiny / translucent-soft / matte-textured / polished-metal)
+#   spec.target_user_warmth (warm-feminine / masculine-rugged / neutral-pro)
+#
+# 算法：每 palette 对每个轴 +1 分，最高分胜出；并列时按 default_priority 决定
+default_priority: [warm-luxury, clean-minimal, industrial-burst]
