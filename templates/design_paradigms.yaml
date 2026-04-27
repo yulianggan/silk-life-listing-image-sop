@@ -1,0 +1,199 @@
+# 丝绸生活 Design Paradigms — Claude 选择范式，Codex 执行视觉底图，脚本叠加文字
+version: 2026-04-27-v1
+
+restricted_category_policy:
+  action: needs_human_review
+  reason: "Do not generate listing/marketing images for knives, weapons, self-defense items, dangerous chemicals, adult products, drugs/supplements, tobacco/alcohol, or gambling-related products."
+
+brand_tokens:
+  - "Russian bold title, but rendered by overlay script, not image model"
+  - "green badge / pill / number label"
+  - "clean product-centered composition"
+  - "warm commercial photography"
+  - "generous negative space"
+  - "real-life hand or scene only when it clarifies scale or usage"
+
+paradigms:
+  hero_spec_badge:
+    intent: "主图点击；让买家 1 秒知道是什么和核心卖点"
+    use_when:
+      - "first slot"
+      - "title or benefits contain strong metric, quantity, duration, material, or core feature"
+    composition:
+      focal_object: "product"
+      product_scale: "55-65% of canvas"
+      zones: ["top_title", "side_badge", "bottom_pill"]
+      layout: "product centered, title top, one badge left or right, secondary pill bottom"
+    text_overlay:
+      title_max_words: 6
+      badge_max_words: 4
+      bullets_max: 0
+    codex_plate_notes:
+      - "no final text, blank rounded badge only"
+      - "product must be fully visible"
+
+  one_second_benefit:
+    intent: "把复杂卖点压成一个强承诺"
+    use_when:
+      - "benefit is abstract but important"
+      - "needs a clean emotional promise"
+    composition:
+      focal_object: "product + simple visual metaphor"
+      product_scale: "45-60%"
+      zones: ["top_title", "bottom_caption"]
+      layout: "large calm title zone, single hero object, minimal icon accent"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 2
+
+  product_callouts:
+    intent: "解释产品结构/特点，给买家购买理由"
+    use_when:
+      - "3-5 physical features can be pointed to"
+      - "product has visible details worth explaining"
+    composition:
+      focal_object: "product with connector dots"
+      product_scale: "60%"
+      zones: ["top_title", "left_callouts", "right_callouts"]
+      layout: "center product, callout dots around edges, labels outside product silhouette"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 4
+
+  steps_123:
+    intent: "证明使用简单；降低操作门槛"
+    use_when:
+      - "use_complexity is multi-step"
+      - "product requires placement, installation, attachment, or repeated process"
+    composition:
+      focal_object: "hands performing steps with product"
+      product_scale: "varies by step"
+      zones: ["top_title", "step_numbers", "step_captions"]
+      layout: "three stacked cells or one large + two small cells"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 3
+
+  scene_grid_4:
+    intent: "展示多场景/多用途"
+    use_when:
+      - "benefits mention several places, audiences, or materials"
+    composition:
+      focal_object: "four use-case cells"
+      product_scale: "visible in every cell"
+      zones: ["top_title", "cell_labels"]
+      layout: "2x2 rounded grid, consistent lighting, product repeated consistently"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 4
+
+  scene_list_text:
+    intent: "场景很多但不适合画 4 宫格时，用列表强化覆盖面"
+    use_when:
+      - "scene list is more important than visual comparison"
+    composition:
+      focal_object: "product + clean list panel"
+      product_scale: "50-60%"
+      zones: ["top_title", "side_list"]
+      layout: "product on one side, list panel on the other"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 3
+
+  problem_solution_split:
+    intent: "展示普通替代方案与本商品优势的差异；不出现竞品品牌"
+    use_when:
+      - "benefits imply competitor pressure or ordinary alternative problems"
+      - "need a clear before/ordinary vs our-product proof"
+    composition:
+      focal_object: "ordinary/problem state on left, actual product advantage on right"
+      product_scale: "right side product dominant and truthful"
+      zones: ["top_title", "left_caption", "right_caption", "bullet_panels"]
+      layout: "clean split layout, left muted, right brighter with product hero"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 3
+    codex_plate_notes:
+      - "no competitor brand identifiers"
+      - "right side must use exact product reference"
+
+  before_after_result:
+    intent: "证明效果可见"
+    use_when:
+      - "beauty/care/cleaning/deodorizing products with visible before-after logic"
+    composition:
+      focal_object: "same subject before and after"
+      product_scale: "product visible but not blocking result"
+      zones: ["top_title", "before_label", "after_label"]
+      layout: "two panels, identical angle and lighting"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 2
+
+  material_macro:
+    intent: "材质/做工/耐用感"
+    use_when:
+      - "material, durability, texture, or premium construction is core"
+    composition:
+      focal_object: "macro product detail"
+      product_scale: "large detail crop + full product small anchor"
+      zones: ["top_title", "small_caption"]
+      layout: "macro texture with clean studio highlight"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 2
+
+  pack_quantity:
+    intent: "强调数量、套装、性价比"
+    use_when:
+      - "pack_count is n-pack or title contains quantity"
+    composition:
+      focal_object: "multiple units arranged neatly"
+      product_scale: "abundant but not chaotic"
+      zones: ["large_quantity", "top_title"]
+      layout: "stacked units, one large number badge"
+    text_overlay:
+      title_max_words: 4
+      badge_max_words: 3
+      bullets_max: 1
+
+  trust_quality:
+    intent: "最后一张收口：品质、可靠、放心"
+    use_when:
+      - "need trust closure"
+      - "do not have real certification evidence"
+    composition:
+      focal_object: "premium product hero"
+      product_scale: "50-60%"
+      zones: ["top_trust", "bottom_caption"]
+      layout: "simple premium product photo, no fake seals"
+    text_overlay:
+      title_max_words: 4
+      bullets_max: 1
+
+  lifestyle_human_scene:
+    intent: "让买家代入真实生活"
+    use_when:
+      - "scale or usage is hard to understand from product-only image"
+      - "human scene improves trust"
+    composition:
+      focal_object: "person/hand naturally using product"
+      product_scale: "clearly visible, not hidden"
+      zones: ["top_title", "corner_badge"]
+      layout: "candid lifestyle scene, product action visible"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 2
+
+  mechanism_cycle:
+    intent: "解释循环、恢复、持续工作原理"
+    use_when:
+      - "consumable or maintenance product has recoverable/cycle mechanism"
+    composition:
+      focal_object: "cycle infographic + product anchor"
+      product_scale: "25-35%"
+      zones: ["top_title", "cycle_labels"]
+      layout: "two circles with arrows, product at bottom"
+    text_overlay:
+      title_max_words: 5
+      bullets_max: 2

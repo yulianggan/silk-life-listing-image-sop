@@ -1,0 +1,588 @@
+{
+  "contract_version": "2026-04-27-v1",
+  "status": "ok",
+  "category": "冰箱除味剂",
+  "product_identity_lock": {
+    "must_keep": [
+      "same product silhouette",
+      "same color and material",
+      "same quantity/count as reference or SKU",
+      "same visible structure and proportions",
+      "product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell"
+    ],
+    "must_not_invent": [
+      "extra accessories or variants",
+      "unsupported certifications, awards, or review stars",
+      "brand logos not present in the input",
+      "claims not supported by SKU benefits",
+      "different product type"
+    ],
+    "reference_priority": [
+      "main/body product reference image",
+      "structure/detail reference image",
+      "usage/scene reference image",
+      "SKU title: Поглотитель запаха для холодильника"
+    ]
+  },
+  "buyer_read": {
+    "core_buyer_question": "买家第一眼是否能确认商品、用途和核心好处？",
+    "core_selling_axis": "metric_or_quantity",
+    "one_sentence_strategy": "每张图只回答一个买家问题；Codex 生成无文字视觉底图，最终俄文由脚本叠加。"
+  },
+  "designer_delta": {
+    "available": false,
+    "pair_observations": [],
+    "note": "If paired communication/artist images are available, run prompts/art_director_system.md to fill reusable pattern_bank."
+  },
+  "style_memory": {
+    "brand_tokens": [
+      "Russian bold title rendered by overlay script",
+      "green badge or pill accent",
+      "clean product-centered composition",
+      "warm commercial photography",
+      "generous negative space",
+      "real hand/lifestyle scene only when it clarifies scale or usage"
+    ],
+    "palette_intent": "fresh clean home mood, mint green and warm white, airy background",
+    "pattern_bank": [
+      {
+        "pattern": "One image, one buyer question, one visual answer",
+        "when_to_use": "all slots",
+        "visual_move": "choose one focal product/comparison/step/scene and remove weak duplicate details",
+        "avoid": "trying to show every Excel benefit in one image"
+      },
+      {
+        "pattern": "Text is overlay, not generated pixels",
+        "when_to_use": "all slots with Russian copy",
+        "visual_move": "Codex creates blank title/badge zones; overlay_text.py renders exact Cyrillic",
+        "avoid": "asking image model to render long Cyrillic paragraphs"
+      },
+      {
+        "pattern": "Green badge carries the strongest metric",
+        "when_to_use": "duration, quantity, dimension, or simple high-value claim exists",
+        "visual_move": "put one metric in a round/pill badge near product but not covering it",
+        "avoid": "multiple competing badges"
+      }
+    ]
+  },
+  "slot_contracts": [
+    {
+      "slot_id": "hero-product",
+      "buyer_question": "这是什么，为什么值得点开？",
+      "design_paradigm": "hero_spec_badge",
+      "one_sentence_promise_ru": "ПОГЛОТИТЕЛЬ ЗАПАХА ДЛЯ ХОЛОДИЛЬНИКА",
+      "visual_answer": "A large truthful product hero plus one strong blank badge area for the core metric/benefit.",
+      "composition": {
+        "focal_object": "product",
+        "product_scale": "55-65%",
+        "camera_angle": "front or 3/4 product hero angle",
+        "text_safe_zones": [
+          "top_title",
+          "side_badge",
+          "bottom_pill"
+        ],
+        "background_mood": "clean warm commercial studio with green accent shapes"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: hero-product\nDESIGN PARADIGM: hero_spec_badge\nBUYER QUESTION: 这是什么，为什么值得点开？\nVISUAL ANSWER: A large truthful product hero plus one strong blank badge area for the core metric/benefit.\n\nCOMPOSITION:\nFocal object: product. Product scale: 55-65%. Camera angle: front or 3/4 product hero angle. Background mood: clean warm commercial studio with green accent shapes.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, side_badge, bottom_pill. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "hero-product",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "ПОГЛОТИТЕЛЬ ЗАПАХА ДЛЯ ХОЛОДИЛЬНИКА",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "badge",
+            "text": "6 МЕСЯЦЕВ",
+            "box": [
+              0.07,
+              0.24,
+              0.24,
+              0.12
+            ],
+            "font_size": 34,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "product-callouts",
+      "buyer_question": "它有哪些真实可见的结构/细节优势？",
+      "design_paradigm": "product_callouts",
+      "one_sentence_promise_ru": "ДО 6 МЕСЯЦЕВ СВЕЖЕСТИ",
+      "visual_answer": "The product remains centered with clean blank callout zones around real visible details.",
+      "composition": {
+        "focal_object": "product with blank callout label zones",
+        "product_scale": "55-65%",
+        "camera_angle": "slightly angled to show structure",
+        "text_safe_zones": [
+          "top_title",
+          "left_callouts",
+          "right_callouts"
+        ],
+        "background_mood": "clean infographic product studio"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: product-callouts\nDESIGN PARADIGM: product_callouts\nBUYER QUESTION: 它有哪些真实可见的结构/细节优势？\nVISUAL ANSWER: The product remains centered with clean blank callout zones around real visible details.\n\nCOMPOSITION:\nFocal object: product with blank callout label zones. Product scale: 55-65%. Camera angle: slightly angled to show structure. Background mood: clean infographic product studio.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, left_callouts, right_callouts. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "product-callouts",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "ДО 6 МЕСЯЦЕВ СВЕЖЕСТИ",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "До 6 месяцев свежести",
+              "Без отдушки и лишнего запаха",
+              "Подходит для холодильника, шкафа и"
+            ],
+            "box": [
+              0.08,
+              0.73,
+              0.84,
+              0.17
+            ],
+            "font_size": 30,
+            "weight": "regular",
+            "align": "left",
+            "max_lines": 3
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "steps-123",
+      "buyer_question": "我会不会用，操作麻烦吗？",
+      "design_paradigm": "steps_123",
+      "one_sentence_promise_ru": "ПРОСТО И УДОБНО",
+      "visual_answer": "Three clear usage moments with hands/action visible and simple blank caption zones.",
+      "composition": {
+        "focal_object": "safe hand action with product",
+        "product_scale": "visible in every step",
+        "camera_angle": "top-down or close 3/4 action angle",
+        "text_safe_zones": [
+          "top_title",
+          "step_numbers",
+          "step_captions"
+        ],
+        "background_mood": "realistic bright usage surface"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: steps-123\nDESIGN PARADIGM: steps_123\nBUYER QUESTION: 我会不会用，操作麻烦吗？\nVISUAL ANSWER: Three clear usage moments with hands/action visible and simple blank caption zones.\n\nCOMPOSITION:\nFocal object: safe hand action with product. Product scale: visible in every step. Camera angle: top-down or close 3/4 action angle. Background mood: realistic bright usage surface.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, step_numbers, step_captions. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "steps-123",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "ПРОСТО И УДОБНО",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "До 6 месяцев свежести",
+              "Без отдушки и лишнего запаха",
+              "Подходит для холодильника, шкафа и"
+            ],
+            "box": [
+              0.08,
+              0.73,
+              0.84,
+              0.17
+            ],
+            "font_size": 30,
+            "weight": "regular",
+            "align": "left",
+            "max_lines": 3
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "scene-grid-4",
+      "buyer_question": "它能用在哪些场景？",
+      "design_paradigm": "scene_grid_4",
+      "one_sentence_promise_ru": "ДЛЯ РАЗНЫХ СЦЕНАРИЕВ",
+      "visual_answer": "Four clean usage cells showing where the product fits, with consistent product identity.",
+      "composition": {
+        "focal_object": "four use-case cells with consistent product",
+        "product_scale": "visible in each cell",
+        "camera_angle": "consistent use-case framing",
+        "text_safe_zones": [
+          "top_title",
+          "cell_labels"
+        ],
+        "background_mood": "clean rounded 2x2 grid"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: scene-grid-4\nDESIGN PARADIGM: scene_grid_4\nBUYER QUESTION: 它能用在哪些场景？\nVISUAL ANSWER: Four clean usage cells showing where the product fits, with consistent product identity.\n\nCOMPOSITION:\nFocal object: four use-case cells with consistent product. Product scale: visible in each cell. Camera angle: consistent use-case framing. Background mood: clean rounded 2x2 grid.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, cell_labels. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; product looking different across grid cells.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; product looking different across grid cells.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "scene-grid-4",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "ДЛЯ РАЗНЫХ СЦЕНАРИЕВ",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "before-after",
+      "buyer_question": "使用前后差别是否看得见？",
+      "design_paradigm": "before_after_result",
+      "one_sentence_promise_ru": "ВИДИМЫЙ РЕЗУЛЬТАТ",
+      "visual_answer": "A matched before/after split showing the result logic clearly and honestly.",
+      "composition": {
+        "focal_object": "same subject before and after",
+        "product_scale": "visible but not blocking result",
+        "camera_angle": "matched before/after angle",
+        "text_safe_zones": [
+          "top_title",
+          "before_label",
+          "after_label"
+        ],
+        "background_mood": "clean split comparison"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: before-after\nDESIGN PARADIGM: before_after_result\nBUYER QUESTION: 使用前后差别是否看得见？\nVISUAL ANSWER: A matched before/after split showing the result logic clearly and honestly.\n\nCOMPOSITION:\nFocal object: same subject before and after. Product scale: visible but not blocking result. Camera angle: matched before/after angle. Background mood: clean split comparison.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, before_label, after_label. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; different subject angle between before and after.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; different subject angle between before and after.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "before-after",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "ВИДИМЫЙ РЕЗУЛЬТАТ",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "label",
+            "text": "ДО",
+            "box": [
+              0.1,
+              0.28,
+              0.18,
+              0.06
+            ],
+            "font_size": 36,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 1
+          },
+          {
+            "kind": "label",
+            "text": "ПОСЛЕ",
+            "box": [
+              0.1,
+              0.62,
+              0.24,
+              0.06
+            ],
+            "font_size": 36,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 1
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "material-tech",
+      "buyer_question": "材质/做工是否可靠？",
+      "design_paradigm": "material_macro",
+      "one_sentence_promise_ru": "КАЧЕСТВЕННЫЙ МАТЕРИАЛ",
+      "visual_answer": "A premium macro/detail view that makes material and build quality feel tangible.",
+      "composition": {
+        "focal_object": "macro detail plus product anchor",
+        "product_scale": "large detail crop, small full-product anchor",
+        "camera_angle": "macro close-up with soft highlight",
+        "text_safe_zones": [
+          "top_title",
+          "small_caption"
+        ],
+        "background_mood": "premium material photography"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: material-tech\nDESIGN PARADIGM: material_macro\nBUYER QUESTION: 材质/做工是否可靠？\nVISUAL ANSWER: A premium macro/detail view that makes material and build quality feel tangible.\n\nCOMPOSITION:\nFocal object: macro detail plus product anchor. Product scale: large detail crop, small full-product anchor. Camera angle: macro close-up with soft highlight. Background mood: premium material photography.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_title, small_caption. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "material-tech",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "КАЧЕСТВЕННЫЙ МАТЕРИАЛ",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "quantity-pack",
+      "buyer_question": "数量/套装是否划算？",
+      "design_paradigm": "pack_quantity",
+      "one_sentence_promise_ru": "6 МЕСЯЦЕВ В НАБОРЕ",
+      "visual_answer": "Neatly arranged multiple units with a large blank quantity badge zone.",
+      "composition": {
+        "focal_object": "multiple units arranged neatly",
+        "product_scale": "abundant but not chaotic",
+        "camera_angle": "front/angled pack arrangement",
+        "text_safe_zones": [
+          "large_quantity",
+          "top_title"
+        ],
+        "background_mood": "clean value-pack composition"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: quantity-pack\nDESIGN PARADIGM: pack_quantity\nBUYER QUESTION: 数量/套装是否划算？\nVISUAL ANSWER: Neatly arranged multiple units with a large blank quantity badge zone.\n\nCOMPOSITION:\nFocal object: multiple units arranged neatly. Product scale: abundant but not chaotic. Camera angle: front/angled pack arrangement. Background mood: clean value-pack composition.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: large_quantity, top_title. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; inventing a larger pack count than provided.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; inventing a larger pack count than provided.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "quantity-pack",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "6 МЕСЯЦЕВ В НАБОРЕ",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "badge",
+            "text": "6 МЕСЯЦЕВ",
+            "box": [
+              0.07,
+              0.24,
+              0.24,
+              0.12
+            ],
+            "font_size": 34,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    },
+    {
+      "slot_id": "trust-badge",
+      "buyer_question": "这个商品是否靠谱、放心？",
+      "design_paradigm": "trust_quality",
+      "one_sentence_promise_ru": "НАДЁЖНОЕ КАЧЕСТВО",
+      "visual_answer": "A quiet premium product statement with no fake seals or unsupported certification marks.",
+      "composition": {
+        "focal_object": "premium product hero",
+        "product_scale": "50-60%",
+        "camera_angle": "dramatic but clean product angle",
+        "text_safe_zones": [
+          "top_trust",
+          "bottom_caption"
+        ],
+        "background_mood": "simple premium trust statement, no fake seals"
+      },
+      "codex_plate_prompt": "Create a photorealistic e-commerce visual plate for a Russian Ozon product listing.\nCanvas: vertical 3:4, 1024x1536px.\n\nREFERENCE LOCK:\nUse the supplied product reference as the source of truth. Keep exactly: same product silhouette, same color and material, same quantity/count as reference or SKU, same visible structure and proportions, product identity described as: small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell. Do not add extra accessories, do not change the product into a different item, and keep the product fully visible.\n\nSLOT: trust-badge\nDESIGN PARADIGM: trust_quality\nBUYER QUESTION: 这个商品是否靠谱、放心？\nVISUAL ANSWER: A quiet premium product statement with no fake seals or unsupported certification marks.\n\nCOMPOSITION:\nFocal object: premium product hero. Product scale: 50-60%. Camera angle: dramatic but clean product angle. Background mood: simple premium trust statement, no fake seals.\n\nTEXT SAFE ZONES:\nReserve clean blank areas for later text overlay at: top_trust, bottom_caption. Use blank rounded panels, badge shapes, or subtle empty areas only. Do NOT render readable Cyrillic or Latin text. Do NOT render fake logos, fake certification seals, or fake review stars.\n\nSTYLE:\nSilk Life listing style: clean commercial product photography, clear hierarchy, soft but high-contrast lighting, green accent badge shapes, generous negative space, professional Ozon thumbnail readability. Palette intent: fresh clean home mood, mint green and warm white, airy background.\n\nAVOID:\nunreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; official certification marks unless provided by user.",
+      "negative_prompt": "unreadable text; random Cyrillic letters; fake logos; fake certification seals; unsupported awards or review stars; extra product parts; wrong material or color; distorted hands; cluttered collage; tiny paragraphs; dirty colors; low-budget poster look; cropped or hidden product; inconsistent product scale; official certification marks unless provided by user.",
+      "text_overlay_plan": {
+        "do_not_ask_codex_to_render_final_text": true,
+        "canvas": {
+          "w": 1024,
+          "h": 1536
+        },
+        "slot_id": "trust-badge",
+        "overlays": [
+          {
+            "kind": "title",
+            "text": "НАДЁЖНОЕ КАЧЕСТВО",
+            "box": [
+              0.08,
+              0.045,
+              0.84,
+              0.13
+            ],
+            "font_size": 58,
+            "weight": "bold",
+            "align": "center",
+            "max_lines": 2
+          },
+          {
+            "kind": "caption",
+            "text": "ПРОВЕРЕНО ДЛЯ ЕЖЕДНЕВНОГО ИСПОЛЬЗОВАНИЯ",
+            "box": [
+              0.11,
+              0.82,
+              0.78,
+              0.08
+            ],
+            "font_size": 30,
+            "weight": "regular",
+            "align": "center",
+            "max_lines": 2
+          }
+        ]
+      },
+      "critic_checklist": [
+        "Product is the same as reference: shape, color, material, count, key structure.",
+        "The image answers the buyer_question in one second.",
+        "All final Russian text comes from overlay_text.py, not image generation.",
+        "Title/badge/bullets are readable at thumbnail size.",
+        "No fake certification, fake logo, fake review, or unsupported claim.",
+        "Composition uses one clear focal idea, not a cluttered collage."
+      ]
+    }
+  ]
+}
