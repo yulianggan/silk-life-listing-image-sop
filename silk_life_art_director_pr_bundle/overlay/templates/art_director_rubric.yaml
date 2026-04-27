@@ -1,0 +1,49 @@
+version: 2026-04-27-v1
+
+weights:
+  product_identity: 0.30
+  commercial_intent: 0.20
+  text_readability: 0.20
+  layout_ctr: 0.15
+  brand_consistency: 0.10
+  truthfulness_safety: 0.05
+
+pass:
+  weighted_min: 8.0
+  product_identity_min: 8.0
+  text_readability_min: 8.0
+
+hard_fails:
+  - "Product body, material, color, or quantity differs from the reference."
+  - "Final image contains AI-generated garbled Cyrillic or Latin text."
+  - "The image creates unsupported certifications, awards, reviews, or claims."
+  - "The product is hidden, cropped, or visually secondary when it should be focal."
+  - "The image markets a restricted product category."
+
+retry_policy:
+  regenerate_plate_when:
+    - "product_identity < 8"
+    - "product is hidden by props/hands"
+    - "background/text zones are too cluttered"
+    - "composition does not answer buyer_question"
+  adjust_overlay_when:
+    - "text_readability < 8 but visual plate is good"
+    - "title too long"
+    - "badge overlaps product"
+    - "too many bullets"
+
+negative_hint_library:
+  product:
+    - "Keep exact reference product; do not invent accessories or variants."
+    - "Product must be fully visible and not cropped."
+    - "Do not change material, color, count, or silhouette."
+  text:
+    - "Do not render readable text in the image model output. Leave blank text zones."
+    - "No random Cyrillic letters, no fake logos, no fake certification seals."
+  layout:
+    - "Avoid cluttered collage; use one focal idea."
+    - "Reserve large clean title area."
+    - "Do not use tiny paragraphs."
+  style:
+    - "Avoid dirty colors, cheap poster effects, noisy backgrounds."
+    - "Use clean commercial product photography with green accent shapes."
