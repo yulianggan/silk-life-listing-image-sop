@@ -1,0 +1,97 @@
+[
+  {
+    "path": "COMMIT_MESSAGE.txt",
+    "size": 355,
+    "sha256": "8c5a2787274bce9bab90207d8622d8bb5625fdc373eff413dfe4c87a3ed7ae51"
+  },
+  {
+    "path": "MANIFEST.json",
+    "size": 3170,
+    "sha256": "a72bdb1b8955788d0c283c3bf85fe6bb2821946a8b8ca40b9938e7b280f861d3"
+  },
+  {
+    "path": "PR_BODY.md",
+    "size": 1935,
+    "sha256": "d39dd6e9f8a7332c3620c2421ff7ef7d5fd39387d61a0ad9526def3f4949622f"
+  },
+  {
+    "path": "TESTS.md",
+    "size": 577,
+    "sha256": "6f4d7256172a57634a1998ac463cbf7237d6f9d3aee42aa4e7f2bd16f8e69009"
+  },
+  {
+    "path": "apply_and_create_pr.sh",
+    "size": 2472,
+    "sha256": "417e1e7482d8be8b95986fe28d6016732bddcd1af0ac0eba6117598e6a0a077f"
+  },
+  {
+    "path": "generated_contract_test.json",
+    "size": 38404,
+    "sha256": "e26c27458a79badd1d6bcb9148763258b16dca1e95f9981da4b8e137b1807629"
+  },
+  {
+    "path": "generated_overlay_test.png",
+    "size": 33785,
+    "sha256": "7a247e14a9a3717648d7847d43d59205eeb061576af22cebec4e39e47fcf0f2b"
+  },
+  {
+    "path": "overlay/SKILL.md",
+    "size": 10923,
+    "sha256": "35d6de2c9c0edf8b2325678fcbaa54c42a0bdaa31765e9f878e0cee63a10dc65"
+  },
+  {
+    "path": "overlay/examples/sample_art_director_contract.json",
+    "size": 38404,
+    "sha256": "e26c27458a79badd1d6bcb9148763258b16dca1e95f9981da4b8e137b1807629"
+  },
+  {
+    "path": "overlay/examples/sample_overlay.png",
+    "size": 33785,
+    "sha256": "7a247e14a9a3717648d7847d43d59205eeb061576af22cebec4e39e47fcf0f2b"
+  },
+  {
+    "path": "overlay/examples/sample_plate.png",
+    "size": 7961,
+    "sha256": "4520c8cfce0916ea851af9c5862222b438a6a47720e2596af242040936b70963"
+  },
+  {
+    "path": "overlay/examples/sample_standard_sku.json",
+    "size": 1032,
+    "sha256": "c10f58c67d3daebe93d746d11ffea50c65e1a81f686341193072d433202c9a55"
+  },
+  {
+    "path": "overlay/prompts/art_director_system.md",
+    "size": 4300,
+    "sha256": "d55d06cfefd0238d07307eba476807e1799dbc2ed339eebf7287b5d5de651926"
+  },
+  {
+    "path": "overlay/prompts/codex_plate_prompt_contract.md",
+    "size": 2007,
+    "sha256": "56266b0662b68fdc171edc884c61b482b88b5a192d416787a83e27b97b44e514"
+  },
+  {
+    "path": "overlay/prompts/critic_art_director.md",
+    "size": 1824,
+    "sha256": "6cda664dbb225c599bd3e670b00cfc5e3fb4cb3c2a16cd3457b96697663a6bd3"
+  },
+  {
+    "path": "overlay/scripts/art_director_contract.py",
+    "size": 26300,
+    "sha256": "6dc7817599ec2d5ab904c9cc198383b95cfcc240ca4a6aba1fabd878b5c37264"
+  },
+  {
+    "path": "overlay/scripts/overlay_text.py",
+    "size": 8491,
+    "sha256": "e5652eb5bdbf5952fa3cca54a0e45f482e687a1542f88049ac59225adeafda10"
+  },
+  {
+    "path": "overlay/templates/art_director_rubric.yaml",
+    "size": 1707,
+    "sha256": "d76747515197d69780953cb01505e544069192750cd6bbf132f898c3aec37cee"
+  },
+  {
+    "path": "overlay/templates/design_paradigms.yaml",
+    "size": 7201,
+    "sha256": "28e8fc756987d6f1f9f1207a487b43aac9e39a475d32a07fec9a8f5c8b0211f8"
+  }
+]

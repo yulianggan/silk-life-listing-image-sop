@@ -1,0 +1,18 @@
+{
+  "category": "冰箱除味剂",
+  "product_name_ru": "Поглотитель запаха для холодильника",
+  "product_subtitle_ru": "Свежесть без отдушки",
+  "product_desc_en": "small white household deodorizer pack for refrigerator, clean rectangular body, soft matte plastic shell",
+  "features_ru": [
+    "До 6 месяцев свежести",
+    "Без отдушки и лишнего запаха",
+    "Подходит для холодильника, шкафа и обуви",
+    "Компактный размер не занимает место"
+  ],
+  "benefits_ru": [
+    "Поглощает неприятные запахи и помогает сохранить свежесть продуктов",
+    "Не перебивает запах еды искусственным ароматом",
+    "Просто положите в нужное место и используйте каждый день"
+  ],
+  "refs": {"body": ["main.jpg"], "scene": ["scene.jpg"]}
+}

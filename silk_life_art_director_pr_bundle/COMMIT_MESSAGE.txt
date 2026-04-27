@@ -1,0 +1,7 @@
+Add art director contract layer for Silk Life image SOP
+
+- Add ArtDirectorContract workflow before Codex image generation
+- Add design paradigms, art director rubric, and prompts
+- Add deterministic contract and Russian overlay scripts
+- Replace direct image-text generation with text-free plate + overlay flow
+- Add safety gate for restricted categories
