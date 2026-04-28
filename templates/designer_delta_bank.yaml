@@ -1,0 +1,239 @@
+# 丝绸生活 Designer Delta Bank
+# 从用户上传的 6 组“沟通图片 → 美工图”样例中蒸馏。
+# 用途：Claude/Cloud Code 先读本文件生成 ArtDirectorContract，再让 Codex 生成无字底图，最后脚本叠俄文。
+version: 2026-04-28-distilled-v2
+
+training_summary:
+  uploaded_zip_count_observed: 6
+  note: "本次会话实际收到 6 个 zip；用户口头说 7 个，缺失的一组可以后续补充再蒸馏。"
+  cases:
+    - id: transparent_heel_gel_inserts
+      source_zip: "归档2.zip"
+      communication_images: 33
+      designer_images: 8
+      designer_canvas: "900x1200"
+      category_mood: "干净、保护脚后跟、医护感、灰白绿"
+      sequence:
+        - "主图：硅胶后跟垫 + 鞋内使用 + 数量角标"
+        - "保护脚后跟：圆形症状图 + 产品组合"
+        - "最佳尺寸：白/灰底尺寸标注"
+        - "使用步骤：撕膜、贴鞋、可取下"
+        - "可反复使用：水洗画面"
+        - "材质舒适：产品大特写 + 4 条短勾选"
+        - "前后对比：穿高跟鞋前后"
+        - "适配鞋型：多鞋型/生活场景"
+      distilled_moves:
+        - "把杂乱的英文参考图统一成俄文大标题 + 灰绿品牌色。"
+        - "保留透明硅胶本体的形状、孔点、边缘和弯曲感，不把它画成普通鞋垫。"
+        - "每张只讲一个购买问题：保护、尺寸、怎么贴、能否水洗、是否适合鞋型。"
+        - "强功能用视觉证据，不用长文案：水洗=水面，尺寸=箭头，保护=脚后跟局部，适配=鞋型网格。"
+
+    - id: tire_air_chuck_adapter
+      source_zip: "归档4.zip"
+      communication_images: 20
+      designer_images: 8
+      designer_canvas: "1200x1600"
+      category_mood: "工业、金属、可靠、黑橙高对比"
+      sequence:
+        - "主图：快速拆装接头，金属大产品 + 强对比背景"
+        - "适配范围：汽车/摩托/自行车/压缩机"
+        - "密封性：单产品英雄图 + 简短说明"
+        - "通用尺寸：白底工程尺寸标注"
+        - "高品质钢/结构：真人装轮胎场景"
+        - "安装步骤：三步真实操作图"
+        - "适配多种轮胎：四象限对象图"
+        - "可靠质量：暗色信任收口"
+      distilled_moves:
+        - "把普通白底商品图升级为工业质感主视觉，但金属件形状、颜色、螺纹口必须不变。"
+        - "黑橙火花背景只用于工具/车品的点击氛围，尺寸图和步骤图仍用白底保证可读。"
+        - "安装步骤不用概念图，用真实手部/轮胎/气泵素材说明流程。"
+        - "主图不堆满使用场景，只突出‘快速接头、密封、8mm 螺纹’等第一眼信息。"
+
+    - id: self_threading_needle_set
+      source_zip: "归档5.zip"
+      communication_images: 37
+      designer_images: 8
+      designer_canvas: "900x1200"
+      category_mood: "温暖手工、木质、金色、米色"
+      sequence:
+        - "主图：12 支针 + 木盒 + 材质标签"
+        - "尺寸图：木盒和多规格针尺寸"
+        - "舒适缝纫：手持木盒 + 3 条短利益"
+        - "快速穿线：人物情绪 + 针眼示意"
+        - "收纳旅行：真实手部收纳图"
+        - "套装包装：专业针套装 + 自穿线细节"
+        - "局部微距：金色针眼穿线"
+        - "生活场景：居家缝纫，痛点列表"
+      distilled_moves:
+        - "把 12/30 等混乱参考统一成一个确定规格，避免数量不一致。"
+        - "木盒和金色针是主识别物，所有图都围绕这两个视觉锚点建立套图一致性。"
+        - "解决‘看不清/穿线难/收纳麻烦’这些人群痛点，而不是只展示针。"
+        - "手工类不用强烈工业背景，用米色布料、木质、柔光和居家人物建立温度。"
+
+    - id: manicure_scissors
+      source_zip: "归档6.zip"
+      communication_images: 26
+      designer_images: 17
+      designer_canvas: "900x1200 / 1086x1448 variants"
+      category_mood: "柔和美容、粉蓝渐变、干净精致"
+      sequence:
+        - "主图：产品大图 + 美甲剪标题 + 少量卖点"
+        - "任务图：三个用途/任务卡片"
+        - "尺寸图：产品居中 + 9cm/4cm 或 86mm/42mm"
+        - "理想结果：人物美容场景"
+        - "前后对比：美甲效果上下对比"
+        - "材质说明：不锈钢、安全、锋利但不夸张"
+        - "适用范围：头发/眉毛/睫毛/精细护理网格"
+        - "卖点圈注：主图上做细节标签"
+      distilled_moves:
+        - "同一产品可以做粉色/蓝色两套变体，但产品角度、金属质感要一致。"
+        - "美容工具的卖点不是‘很锋利’，而是‘精细、干净、可控、沙龙效果’。"
+        - "尺寸图极简，少于 3 个数字；功能图用卡片承接，不堆文字。"
+        - "人物图承担信任和使用场景，产品图承担参数和结构说明。"
+
+    - id: office_craft_cutting_tool
+      source_zip: "归档7.zip"
+      communication_images: 23
+      designer_images: 10
+      designer_canvas: "900x1200 / 1086x1448 variants"
+      category_mood: "技术、黑绿、办公手工"
+      safety_policy: "sharp_tool_human_review"
+      sequence_observed:
+        - "主图：大标题 + 规格角标 + 工具特写"
+        - "场景：纸张、包装、手工材料"
+        - "角度：30°角度说明"
+        - "舒适：握持和轻量"
+        - "材质：钢材说明"
+        - "生活场景：开箱/手工/修理"
+        - "结构：部件替换"
+      distilled_moves:
+        - "本组只用于视觉范式观察：黑绿技术风、场景网格、角度图、材质图。"
+        - "项目默认不要一键生成锋利刀具/刀刃类高转化营销图；应输出 needs_human_review。"
+
+    - id: yellow_foot_deodorant_stickers
+      source_zip: "抗菌鞋垫贴纸.zip"
+      communication_images: 27
+      designer_images: 8
+      designer_canvas: "1200x1600"
+      category_mood: "黄绿、柠檬、天然、除味、清爽"
+      sequence:
+        - "主图：包装 + 鞋 + 12 枚数量角标"
+        - "天然成分：手持黄贴 + 柠檬/精油氛围"
+        - "通用尺寸：黄贴白底尺寸"
+        - "粘贴步骤：三步圆形图片"
+        - "成分机制：精油/柠檬/吸附物三元素循环"
+        - "适配鞋型：多鞋型"
+        - "数量与除味：包装 + 12 枚 + 痛点人物"
+        - "7 天效果：应用对象图标"
+      distilled_moves:
+        - "黄色产品必须和包装颜色统一，不要换成白色/绿色普通鞋垫。"
+        - "天然/环保不靠大段文字，靠柠檬、精油、植物、干净光感传递。"
+        - "步骤图用圆形局部特写，强制每步只有一个动作。"
+        - "效果类图要避免夸大，用‘7天理想效果/清新感’等温和表达。"
+
+global_principles:
+  - id: product_truth_over_ctr
+    rule: "产品本体真实性优先于点击率：形状、颜色、数量、包装、关键材质不可被图像模型改写。"
+  - id: one_buyer_question_per_image
+    rule: "每张图只回答一个购买问题：是什么、解决什么、规格多少、怎么用、适合谁、为什么可信。"
+  - id: visual_evidence_before_copy
+    rule: "先决定视觉证据，再写标题；没有证据的卖点不要上图。"
+  - id: normalize_reference_noise
+    rule: "沟通图片可以杂乱、英文、中文、不同尺寸；成图必须统一成一个俄语视觉系统。"
+  - id: no_ai_final_text
+    rule: "Codex 只生成无最终俄文底图，俄文标题、数字、角标、尺寸和步骤由 overlay_text.py 程序叠加。"
+  - id: vertical_3x4_default
+    rule: "美工图基本是竖版 3:4，优先 900x1200 或 1200x1600；不要继续沿用沟通图里的 800x800 方图。"
+  - id: hierarchy_1_second
+    rule: "1 秒内先读主标题，再读数字/角标，再读 2-3 个短支持点；禁止 6 个以上小字卖点同屏。"
+  - id: set_consistency
+    rule: "同一套图保持同一色温、标题位置、角标样式、产品摄影逻辑；不同 slot 变化的是证据方式。"
+
+russian_copy_rules:
+  title:
+    max_lines: 2
+    max_words_soft: 6
+    style: "uppercase or title case, bold, high contrast"
+    examples:
+      - "ОПТИМАЛЬНЫЙ РАЗМЕР"
+      - "УДОБНАЯ КЛЕЙКАЯ СТОРОНА"
+      - "ПРОЧНЫЙ И НАДЁЖНЫЙ МАТЕРИАЛ"
+  badge:
+    use_when: "数量、尺寸、时长、材料、核心规格"
+    max_words_soft: 4
+    examples:
+      - "12 шт"
+      - "9 мм"
+      - "7 дней"
+  bullets:
+    max_count: 3
+    max_words_each: 5
+    style: "短动词短名词，避免长句"
+
+category_archetypes:
+  transparent_heel_gel:
+    palette: "white / warm grey / muted green"
+    evidence_priority: ["hero", "protection", "size", "steps", "reusable", "material", "before_after", "shoe_fit"]
+    must_preserve: ["transparent gel", "curved heel-pad shape", "raised dot texture", "pair/count"]
+  yellow_deodorant_sticker:
+    palette: "sunny yellow / lemon green / clean white"
+    evidence_priority: ["hero_pack", "natural_composition", "size", "steps", "mechanism", "shoe_fit", "quantity", "duration"]
+    must_preserve: ["yellow sticker shape", "package color", "pack count"]
+  warm_needle_set:
+    palette: "cream / wood / gold / soft brown"
+    evidence_priority: ["hero_pack", "size", "comfort", "threading", "storage", "bundle", "macro", "lifestyle"]
+    must_preserve: ["wooden case", "gold needle head", "needle count", "needle lengths"]
+  beauty_manicure_scissors:
+    palette: "pastel pink / pastel blue / white / grey"
+    evidence_priority: ["hero", "task_cards", "size", "beauty_scene", "before_after", "material", "application_grid", "callouts"]
+    must_preserve: ["metal body shape", "ring handle geometry", "screw position", "tip shape"]
+  auto_industrial_part:
+    palette: "black / dark steel / orange accent / white spec page"
+    evidence_priority: ["hero", "compatibility", "sealing", "dimension", "material", "install_steps", "fit_grid", "trust"]
+    must_preserve: ["brass/gold body", "silver clip", "thread size", "connector opening"]
+  sharp_tool_human_review:
+    policy: "needs_human_review"
+    reason: "锋利刀刃/刀具类不走一键高转化营销自动化；只能做人工审核后的中性图。"
+
+layout_paradigms:
+  hero_spec_badge:
+    when: "首图/主卖点/数量规格清晰"
+    composition: "产品 55-70%，顶部大标题，左/右数字角标，包装或主物在中心，背景少道具。"
+  size_spec:
+    when: "尺寸、长度、宽度、容量、规格影响购买"
+    composition: "白底或浅底，产品居中，2-4 条虚线/箭头，只有必要数字。"
+  steps_123:
+    when: "使用/安装/粘贴/替换需要解释"
+    composition: "3 步，每步一张局部真实图，一个动作，一个短标题。"
+  scene_grid:
+    when: "适用对象多，买家担心不适配"
+    composition: "2x2 或 1+3 网格，统一圆角卡片，标签短。"
+  before_after:
+    when: "效果可视觉展示"
+    composition: "上下或左右对比，同角度同光线，标签 DO/POSLE 或 До/После。"
+  material_macro:
+    when: "材质、耐用、天然、柔软、吸附、金属质感是核心"
+    composition: "局部微距 + 产品小全貌，文字少，背景用类目纹理。"
+  quantity_pack:
+    when: "数量/套装/包装是购买关键"
+    composition: "包装 + 多件铺陈 + 大数字角标；不改变数量事实。"
+  trust_closure:
+    when: "最后一张收口品牌/品质/安心感"
+    composition: "产品稳定居中，背景收敛，标题一句话，不堆新卖点。"
+
+failure_modes:
+  - id: ai_changes_product
+    symptom: "产品变形、换色、换材质、数量变多/变少、包装文字乱改"
+    fix: "改用 image edit/reference crop；底图 prompt 加 must preserve；critic 强制重跑。"
+  - id: fake_cyrillic
+    symptom: "俄文乱码、拉丁替换、字母缺失"
+    fix: "Codex plate 禁止生成最终文字；所有文字 overlay。"
+  - id: too_many_claims
+    symptom: "像详情页截图，满屏小字"
+    fix: "保留一个主问题，其他卖点分到别的 slot。"
+  - id: wrong_palette
+    symptom: "类目色温错，如鞋贴变工业黑、工具变柔和粉"
+    fix: "按 category_archetype 选择 palette。"
+  - id: generic_stock_scene
+    symptom: "人物/场景好看但商品看不清"
+    fix: "产品必须在每张图里有明确可见证据；场景图也要露出产品或动作。"

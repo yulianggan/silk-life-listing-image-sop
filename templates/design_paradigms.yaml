@@ -1,0 +1,225 @@
+# 丝绸生活 Design Paradigms v2
+# 从 6 组真实美工图抽象出的可执行版式。Codex 只做无字底图，文字用 overlay_text.py 叠加。
+version: 2026-04-28-v2
+
+canvas:
+  default_ratio: "3:4"
+  preferred_sizes:
+    - [900, 1200]
+    - [1200, 1600]
+    - [1024, 1365]
+  safe_margin:
+    x: 0.06
+    y: 0.05
+
+safety:
+  restricted_auto_marketing:
+    action: "needs_human_review"
+    categories:
+      - "weapons"
+      - "utility knives / exposed blade cutting tools"
+      - "self-defense products"
+      - "dangerous chemicals"
+      - "adult products"
+      - "controlled or age-restricted substances"
+      - "gambling related products"
+    instruction: "Do not generate high-conversion marketing image prompts for these categories. Produce only a neutral review note."
+
+brand_tokens:
+  - "竖版 3:4 Ozon listing 图"
+  - "俄文主标题大而少，优先 1-2 行"
+  - "数字角标/绿色或类目色胶囊"
+  - "产品本体 55-70% 视觉权重"
+  - "同一套图色温统一"
+  - "真实手部/生活场景只在解释尺寸、动作、效果时出现"
+  - "不让图像模型渲染最终俄文"
+
+paradigms:
+  hero_spec_badge:
+    intent: "首图点击；买家一秒知道这是什么、数量/规格/核心卖点。"
+    use_when:
+      - "slot 1"
+      - "产品有明确数量、尺寸、材质、时长、核心规格"
+    visual_logic:
+      product_role: "hero"
+      product_scale: "55-70%"
+      background: "category palette gradient or simple scenario"
+      evidence: "actual product + pack/count/spec badge"
+      layout: "top title, product center, side badge, optional bottom pill"
+    overlay_zones:
+      title: {x: 0.08, y: 0.05, w: 0.84, h: 0.16, align: "center"}
+      badge: {x: 0.07, y: 0.20, w: 0.25, h: 0.12, align: "center"}
+      subtitle: {x: 0.10, y: 0.82, w: 0.80, h: 0.08, align: "center"}
+    text_limits:
+      title_words: 6
+      badges: 2
+      bullets: 0
+    negative:
+      - "no fake Cyrillic text"
+      - "no extra product variants"
+      - "do not change product color or count"
+
+  size_spec:
+    intent: "消除尺寸/规格疑虑。"
+    use_when:
+      - "dimension or size matters"
+      - "buyer may worry about fit"
+    visual_logic:
+      product_role: "measured object"
+      product_scale: "55-65%"
+      background: "white, light grey, pastel, no clutter"
+      evidence: "dashed dimension arrows, 2-4 numeric labels"
+      layout: "title top, product center, arrows around product"
+    overlay_zones:
+      title: {x: 0.08, y: 0.06, w: 0.84, h: 0.12, align: "center"}
+      caption: {x: 0.10, y: 0.84, w: 0.80, h: 0.06, align: "center"}
+    text_limits:
+      title_words: 4
+      dimensions: 4
+      bullets: 0
+
+  product_callouts:
+    intent: "把产品结构/功能变成可视理由。"
+    use_when:
+      - "visible feature points 3-5"
+      - "material/structure/shape are differentiators"
+    visual_logic:
+      product_role: "center object"
+      product_scale: "58-68%"
+      background: "clean category color"
+      evidence: "dots, short connector labels, optional macro circles"
+      layout: "title top, product center/right, labels around product"
+    overlay_zones:
+      title: {x: 0.06, y: 0.05, w: 0.88, h: 0.12, align: "center"}
+      label_left: {x: 0.04, y: 0.30, w: 0.32, h: 0.40, align: "left"}
+      label_right: {x: 0.64, y: 0.30, w: 0.32, h: 0.40, align: "left"}
+    text_limits:
+      title_words: 5
+      callouts: 5
+
+  steps_123:
+    intent: "降低使用/安装门槛。"
+    use_when:
+      - "installing, sticking, replacing, assembling, threading"
+    visual_logic:
+      product_role: "action evidence"
+      product_scale: "varies per step"
+      background: "white/light with rounded step cards"
+      evidence: "three real close-up action photos"
+      layout: "1+2 or vertical 3 stacked cards; each step one action"
+    overlay_zones:
+      title: {x: 0.06, y: 0.05, w: 0.88, h: 0.10, align: "center"}
+      step_numbers: "place on each step card as small pill"
+      bottom_caption: {x: 0.08, y: 0.85, w: 0.84, h: 0.08, align: "center"}
+    text_limits:
+      title_words: 5
+      step_caption_words: 4
+      steps: 3
+
+  scene_grid:
+    intent: "证明适配范围/使用场景广。"
+    use_when:
+      - "multiple shoe types / materials / vehicles / tasks / users"
+    visual_logic:
+      product_role: "appears in each cell or center"
+      product_scale: "20-45% per cell"
+      background: "2x2 cards with labels"
+      evidence: "four controlled scenarios; no random stock clutter"
+      layout: "top title, grid below, short labels"
+    overlay_zones:
+      title: {x: 0.06, y: 0.05, w: 0.88, h: 0.10, align: "left"}
+      cell_labels: "bottom of each rounded cell"
+    text_limits:
+      title_words: 5
+      cell_label_words: 2
+
+  before_after_result:
+    intent: "展示可视效果，但不夸大。"
+    use_when:
+      - "effect can be visually compared"
+      - "beauty, comfort, anti-friction, deodorizing, cleaning"
+    visual_logic:
+      product_role: "effect proof; product may be secondary"
+      product_scale: "20-35% if product shown"
+      background: "clean card split"
+      evidence: "same angle before and after"
+      layout: "two panels top/bottom or left/right, clear labels"
+    overlay_zones:
+      title: {x: 0.06, y: 0.05, w: 0.88, h: 0.10, align: "center"}
+      label_before: {x: 0.68, y: 0.24, w: 0.24, h: 0.06, align: "center"}
+      label_after: {x: 0.68, y: 0.59, w: 0.24, h: 0.06, align: "center"}
+    text_limits:
+      title_words: 4
+      labels: 2
+
+  material_macro:
+    intent: "证明材质/质感/成分/耐用。"
+    use_when:
+      - "material is a core claim"
+      - "natural ingredients or metal/gel/wood texture matters"
+    visual_logic:
+      product_role: "macro proof + product identity"
+      product_scale: "40-60%"
+      background: "texture/ingredient/workspace"
+      evidence: "macro crop, ingredient props, polished material"
+      layout: "title top or left, macro/product center, 2-3 tiny support labels"
+    overlay_zones:
+      title: {x: 0.06, y: 0.06, w: 0.88, h: 0.12, align: "left"}
+      bullets: {x: 0.58, y: 0.20, w: 0.35, h: 0.24, align: "left"}
+    text_limits:
+      title_words: 5
+      bullets: 3
+
+  quantity_pack:
+    intent: "展示数量/套装/包装，解决值不值。"
+    use_when:
+      - "pack_count exists"
+      - "bundle completeness is a selling point"
+    visual_logic:
+      product_role: "pack and all included items"
+      product_scale: "60-75%"
+      background: "clean product table"
+      evidence: "all pieces visible or implied, pack front visible"
+      layout: "big count badge, arranged bundle, optional product close-up"
+    overlay_zones:
+      title: {x: 0.08, y: 0.05, w: 0.84, h: 0.11, align: "center"}
+      badge: {x: 0.06, y: 0.17, w: 0.26, h: 0.12, align: "center"}
+    text_limits:
+      title_words: 4
+      badges: 1
+
+  lifestyle_human_scene:
+    intent: "建立真实使用感和情绪信任。"
+    use_when:
+      - "buyer needs to imagine daily use"
+      - "pain point is emotional or lifestyle related"
+    visual_logic:
+      product_role: "visible in hand or applied object"
+      product_scale: "visible but not necessarily largest"
+      background: "realistic home, craft, beauty, shoe, car scene"
+      evidence: "human interaction clarifies use/scale"
+      layout: "photo dominates, title in clean safe area"
+    overlay_zones:
+      title: {x: 0.06, y: 0.06, w: 0.50, h: 0.15, align: "left"}
+      small_bullets: {x: 0.06, y: 0.18, w: 0.35, h: 0.20, align: "left"}
+    text_limits:
+      title_words: 5
+      bullets: 3
+
+  trust_closure:
+    intent: "最后一张收口：可靠、品质、安心。"
+    use_when:
+      - "final slot"
+      - "durability/quality/factory/long-term trust matters"
+    visual_logic:
+      product_role: "stable hero object"
+      product_scale: "45-60%"
+      background: "premium, uncluttered, category palette"
+      evidence: "product + single trust headline"
+      layout: "title top/left, product center, one short caption bottom"
+    overlay_zones:
+      title: {x: 0.06, y: 0.06, w: 0.60, h: 0.12, align: "left"}
+      caption: {x: 0.08, y: 0.84, w: 0.84, h: 0.08, align: "center"}
+    text_limits:
+      title_words: 4
+      bullets: 0

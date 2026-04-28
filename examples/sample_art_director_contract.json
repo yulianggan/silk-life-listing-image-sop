@@ -1,0 +1,454 @@
+{
+  "contract_version": "2026-04-28-v2",
+  "status": "ready",
+  "auto_generate_allowed": true,
+  "category_archetype": "yellow_deodorant_sticker",
+  "set_style": {
+    "canvas": {
+      "ratio": "3:4",
+      "preferred": "1200x1600 or 900x1200"
+    },
+    "palette": "sunny yellow / lemon green / clean white",
+    "visual_mood": "fresh, natural, deodorizing, clean",
+    "typography": "programmatic Cyrillic overlay only"
+  },
+  "sku_facts": {
+    "product_name_ru": "СТИКЕРЫ ДЛЯ ОБУВИ",
+    "metrics_detected": [
+      "12 шт",
+      "7 дней"
+    ],
+    "must_preserve": [
+      "yellow sticker shape",
+      "package color and pack count",
+      "actual adhesive patch geometry"
+    ],
+    "forbidden_changes": [
+      "do not change product shape",
+      "do not change product color",
+      "do not invent package or count",
+      "do not alter material appearance",
+      "do not render final readable Cyrillic text in the image model"
+    ]
+  },
+  "slot_contracts": [
+    {
+      "slot_index": 1,
+      "slot_id": "hero-product",
+      "buyer_question": "第一眼这是什么，核心规格/数量是什么？",
+      "commercial_intent": "提升首图点击并确认商品身份。",
+      "selected_paradigm": "hero_spec_badge",
+      "visual_answer": "产品或包装大图 + 类目色背景 + 一个数字/规格角标。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "СТИКЕРЫ ДЛЯ ОБУВИ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [
+          {
+            "text": "12 шт",
+            "zone": "side_or_top",
+            "shape": "circle_or_pill"
+          }
+        ],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: hero_spec_badge. Buyer question: 第一眼这是什么，核心规格/数量是什么？. Visual answer: 产品或包装大图 + 类目色背景 + 一个数字/规格角标。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 2,
+      "slot_id": "natural-composition",
+      "buyer_question": "成分/来源是否让人安心？",
+      "commercial_intent": "用天然氛围增强信任。",
+      "selected_paradigm": "material_macro",
+      "visual_answer": "产品 + 柠檬/精油/植物/干净光感等成分视觉证据。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "ЭКОЛОГИЧНЫЙ СОСТАВ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: material_macro. Buyer question: 成分/来源是否让人安心？. Visual answer: 产品 + 柠檬/精油/植物/干净光感等成分视觉证据。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 3,
+      "slot_id": "size-spec",
+      "buyer_question": "尺寸是否合适？",
+      "commercial_intent": "降低因尺寸不确定导致的犹豫。",
+      "selected_paradigm": "size_spec",
+      "visual_answer": "白/浅底产品居中，2-4 个尺寸箭头。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "ОПТИМАЛЬНЫЙ РАЗМЕР",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [],
+        "labels": [],
+        "dimensions": [
+          "12 шт",
+          "7 дней"
+        ],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: size_spec. Buyer question: 尺寸是否合适？. Visual answer: 白/浅底产品居中，2-4 个尺寸箭头。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 4,
+      "slot_id": "steps-123",
+      "buyer_question": "怎么使用，是否简单？",
+      "commercial_intent": "降低使用门槛。",
+      "selected_paradigm": "steps_123",
+      "visual_answer": "三步真实动作卡片，每步一个动作。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "ПРОСТОЕ ИСПОЛЬЗОВАНИЕ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [],
+        "labels": [],
+        "dimensions": [],
+        "steps": [
+          {
+            "n": 1,
+            "caption": "ШАГ 1"
+          },
+          {
+            "n": 2,
+            "caption": "ШАГ 2"
+          },
+          {
+            "n": 3,
+            "caption": "ШАГ 3"
+          }
+        ],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: steps_123. Buyer question: 怎么使用，是否简单？. Visual answer: 三步真实动作卡片，每步一个动作。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 5,
+      "slot_id": "mechanism-ingredients",
+      "buyer_question": "它为什么有效？",
+      "commercial_intent": "用成分机制建立合理性。",
+      "selected_paradigm": "material_macro",
+      "visual_answer": "产品 + 2-3 个成分/吸附元素，用箭头连接。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "НАТУРАЛЬНЫЙ СОСТАВ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: material_macro. Buyer question: 它为什么有效？. Visual answer: 产品 + 2-3 个成分/吸附元素，用箭头连接。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 6,
+      "slot_id": "shoe-fit-grid",
+      "buyer_question": "适合哪些鞋/对象？",
+      "commercial_intent": "扩大适配感。",
+      "selected_paradigm": "scene_grid",
+      "visual_answer": "多鞋型/多对象卡片网格，每格短标签。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "ПОДХОДИТ ДЛЯ РАЗНОЙ ОБУВИ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: scene_grid. Buyer question: 适合哪些鞋/对象？. Visual answer: 多鞋型/多对象卡片网格，每格短标签。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 7,
+      "slot_id": "quantity-pack",
+      "buyer_question": "一套有多少，值不值？",
+      "commercial_intent": "突出数量和包装。",
+      "selected_paradigm": "quantity_pack",
+      "visual_answer": "包装 + 多件铺陈 + 大数字角标。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "В НАБОРЕ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [
+          {
+            "text": "12 шт",
+            "zone": "side_or_top",
+            "shape": "circle_or_pill"
+          }
+        ],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: quantity_pack. Buyer question: 一套有多少，值不值？. Visual answer: 包装 + 多件铺陈 + 大数字角标。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    },
+    {
+      "slot_index": 8,
+      "slot_id": "duration-effect",
+      "buyer_question": "效果能持续多久/适合哪里？",
+      "commercial_intent": "温和展示效果，不夸大。",
+      "selected_paradigm": "before_after_result",
+      "visual_answer": "产品 + 应用对象/效果卡片 + 时长角标。",
+      "layout_plan": {
+        "canvas": {
+          "ratio": "3:4",
+          "preferred": "1200x1600 or 900x1200"
+        },
+        "palette": "sunny yellow / lemon green / clean white",
+        "product_truth": "use reference product as immutable object",
+        "text_policy": "no final text in Codex plate; overlay later"
+      },
+      "overlay_text_plan": {
+        "title": "ЭФФЕКТ ДО 7 ДНЕЙ",
+        "title_zone": "top",
+        "subtitle": "",
+        "badges": [
+          {
+            "text": "12 шт",
+            "zone": "side_or_top",
+            "shape": "circle_or_pill"
+          }
+        ],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "style": {
+          "font_family": "DejaVu Sans or Arial with Cyrillic support",
+          "title_weight": "bold",
+          "title_case": "upper or title"
+        }
+      },
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "no fake glyphs or garbled letters",
+        "do not alter product shape",
+        "do not alter product color",
+        "do not invent extra items",
+        "do not change package or count",
+        "no cluttered low-quality collage"
+      ],
+      "critic_checks": [
+        "product body matches reference",
+        "quantity/size/material facts are preserved",
+        "one buyer question is answered clearly",
+        "text can be overlaid in safe zones",
+        "set palette matches category archetype"
+      ],
+      "codex_plate_prompt": "Create a vertical 3:4 commercial Russian ecommerce product visual plate. Do NOT render final readable Russian or Cyrillic text. Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. Category archetype: yellow_deodorant_sticker. Palette and mood: sunny yellow / lemon green / clean white / fresh, natural, deodorizing, clean. Design paradigm: before_after_result. Buyer question: 效果能持续多久/适合哪里？. Visual answer: 产品 + 应用对象/效果卡片 + 时长角标。. Keep the exact product from reference images: same shape, color, material, package, count, and key details. Use clean commercial lighting, high perceived quality, and generous negative space. Do not invent extra product variants or change factual specifications."
+    }
+  ]
+}

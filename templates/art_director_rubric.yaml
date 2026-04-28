@@ -1,0 +1,49 @@
+# Art Director + Critic rubric v2
+version: 2026-04-28-v2
+
+weights:
+  product_fidelity: 0.42
+  commercial_clarity: 0.20
+  russian_text_correctness: 0.16
+  visual_hierarchy: 0.12
+  set_consistency: 0.06
+  marketplace_safety: 0.04
+
+hard_gates:
+  product_fidelity_min: 8.5
+  no_fake_cyrillic: true
+  no_wrong_quantity: true
+  no_wrong_material: true
+  no_unsafe_auto_marketing: true
+
+review_questions:
+  product_fidelity:
+    - "产品本体是否与参考图一致：形状、颜色、材质、关键孔位/螺纹/针眼/包装？"
+    - "数量/尺寸/包装是否与 SKU 事实一致？"
+    - "产品是否被 AI 换成了同类但不同款？"
+  commercial_clarity:
+    - "买家 1 秒内能不能知道这张图回答的问题？"
+    - "证据方式是否匹配卖点：尺寸、步骤、前后对比、材质、数量、场景？"
+  russian_text_correctness:
+    - "所有俄文是否来自 overlay_text.py，而不是图像模型胡写？"
+    - "俄文是否大而短，主副层级清楚？"
+  visual_hierarchy:
+    - "主标题、数字角标、产品、支持点有没有抢层级？"
+    - "是否删除了弱信息和重复信息？"
+  set_consistency:
+    - "同一套图的色温、字体、角标、产品处理是否统一？"
+  marketplace_safety:
+    - "是否把限制类/锋利刀刃类商品标成 needs_human_review？"
+    - "是否避免夸大无法证明的功效？"
+
+retry_policy:
+  if_product_changed:
+    action: "rerun with stronger reference lock / use image edit / preserve product mask"
+  if_text_bad:
+    action: "regenerate plate with no text, then overlay again"
+  if_cluttered:
+    action: "drop secondary bullets, keep one buyer question"
+  if_wrong_palette:
+    action: "switch to category_archetype palette"
+  if_restricted:
+    action: "stop automated image generation; write human review note"
