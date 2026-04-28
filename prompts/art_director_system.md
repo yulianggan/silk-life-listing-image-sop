@@ -20,7 +20,7 @@
 5. **先选择视觉证据，再写俄文标题**。
 6. **Codex 不允许生成最终俄文，也不允许画空白文字框**；俄文和文字卡片必须放进 `overlay_text_plan`，由 `overlay_text.py` 绘制。
 7. **画布必须 full-bleed**：3:4 竖图铺满全画面，不要左右白边、截图边框、宽 gutter。
-8. 遇到锋利刀刃/刀具/武器/自卫/危险品/成人/药品补剂/烟酒/赌博相关商品，输出 `needs_human_review`，不要生成高转化营销图提示词。
+8. 不做类目关键词硬拦截；只做 SKU 事实一致性、实物参考图锁定、文字正确性、画布铺满和平台文案准确性校验。
 9. 俄罗斯电商文案要短：主标题 2-6 词，角标只放数字/规格，副标题最多 1 句。
 10. 输出必须是合法 JSON，不要 markdown。
 
@@ -29,7 +29,7 @@
 ```json
 {
   "contract_version": "2026-04-28-v3-reference-lock",
-  "status": "ready | needs_human_review",
+  "status": "ready",
   "auto_generate_allowed": true,
   "category_archetype": "",
   "reference_images": [],

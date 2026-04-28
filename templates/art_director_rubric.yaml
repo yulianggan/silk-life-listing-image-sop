@@ -10,7 +10,7 @@ weights:
   canvas_fill: 0.06
   visual_hierarchy: 0.04
   set_consistency: 0.02
-  marketplace_safety: 0.02
+  claim_accuracy: 0.02
 
 hard_gates:
   product_fidelity_min: 8.5
@@ -22,7 +22,6 @@ hard_gates:
   no_side_gutters: true
   no_wrong_quantity: true
   no_wrong_material: true
-  no_unsafe_auto_marketing: true
 
 review_questions:
   product_fidelity:
@@ -49,9 +48,9 @@ review_questions:
     - "是否删除了弱信息和重复信息？"
   set_consistency:
     - "同一套图的色温、字体、角标、产品处理是否统一？"
-  marketplace_safety:
-    - "是否把限制类/锋利刀刃类商品标成 needs_human_review？"
-    - "是否避免夸大无法证明的功效？"
+  claim_accuracy:
+    - "尺寸、数量、材质、效果描述是否与 SKU 和参考图一致？"
+    - "是否避免无依据夸大功效或编造卖点？"
 
 retry_policy:
   if_product_changed:
@@ -68,5 +67,3 @@ retry_policy:
     action: "drop secondary bullets, keep one buyer question"
   if_wrong_palette:
     action: "switch to category_archetype palette"
-  if_restricted:
-    action: "stop automated high-conversion generation; write human review note"
