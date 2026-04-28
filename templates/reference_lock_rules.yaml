@@ -1,0 +1,85 @@
+# Reference lock rules v3
+version: 2026-04-28-v3-reference-lock
+
+why:
+  - "沟通图片里经常混有竞品图、场景图、详情页截图，Codex 如果只读文字会生成相似款而不是实物。"
+  - "真实产品细节必须由 reference_images 锁定，不能让图像模型自由重画。"
+  - "文字卡片必须由 overlay_text.py 绘制，不能让 Codex 先画随机空白框。"
+
+reference_selection:
+  required: true
+  script: "scripts/reference_selector.py"
+  primary_refs:
+    min: 1
+    recommended: "2-4 张：白底/包装/局部结构"
+  exclude:
+    - "competitor screenshots"
+    - "scene-only images"
+    - "detail-page collages"
+    - "wrong variants"
+    - "designer final images"
+  visual_confirmation:
+    required: true
+    instruction: "视觉模型必须确认 primary_product_refs 是否真的是售卖 SKU。"
+
+product_geometry_lock:
+  mode: "strict_reference_lock"
+  preserve:
+    - "silhouette"
+    - "length-to-width ratio"
+    - "thickness"
+    - "color"
+    - "material"
+    - "package"
+    - "count"
+    - "holes / threads / eyelets / dots / transparent edges / special structures"
+  forbid:
+    - "shorten product"
+    - "fatten product"
+    - "thicken product"
+    - "bend product unless reference shows bend"
+    - "simplify key structure"
+    - "replace with a similar product"
+    - "change packaging"
+    - "invent count"
+
+codex_plate_policy:
+  use_reference_images: true
+  method_preference:
+    - "image edit"
+    - "reference composite"
+    - "masked background extension"
+  forbid:
+    - "text-to-image product generation without references"
+    - "final readable Cyrillic text"
+    - "fake glyphs"
+    - "placeholder text cards"
+    - "empty rounded boxes"
+    - "random UI frames"
+    - "side white borders"
+    - "left/right gutters"
+
+overlay_policy:
+  owner: "scripts/overlay_text.py"
+  draws:
+    - "title pill"
+    - "green badges"
+    - "dimension cards"
+    - "step labels"
+    - "callout cards"
+  default_fit_mode: "cover"
+  no_padding_default: true
+
+failure_examples:
+  product_shortened:
+    symptom: "真实产品很修长，生成图变短变胖。"
+    fix: "attach primary_product_refs; add geometry ratio; use image edit/reference composite; rerun."
+  overlay_misaligned:
+    symptom: "文字与 Codex 预留框错位。"
+    fix: "Codex 不画框；overlay_text.py 根据 normalized boxes 自己画卡片。"
+  missing_text:
+    symptom: "部分尺寸、步骤、标签没叠上。"
+    fix: "overlay_text_plan 必须显式包含 title_box/badges/dimensions/steps/labels。"
+  side_margins:
+    symptom: "左右两边大白边或像截图。"
+    fix: "full_bleed_cover；overlay_text.py 默认 cover crop；prompt 禁止 gutters。"
