@@ -22,7 +22,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-CONTRACT_VERSION = "2026-04-28-v3-reference-lock"
+CONTRACT_VERSION = "2026-04-28-v3-reference-lock-no-category-gate"
 DEFAULT_CANVAS = {
     "ratio": "3:4",
     "preferred": "1200x1600",
@@ -38,18 +38,8 @@ METRIC_RE = re.compile(
 # Do not use a greedy context regex because adjacent values such as
 # "9 мм / лезвие, 130 мм / длина, 13 мм / ширина" must remain separate.
 
-# Sharp utility knives and similar exposed blade products should not be auto-marketed.
-RESTRICTED_PATTERNS = [
-    r"\bweapon\b", r"\bknife\b", r"\bblade\b", r"\bcutter\b",
-    r"оруж", r"канцелярск\w*\s+нож", r"\bнож\b", r"лезви",
-    r"美工刀", r"刀具", r"刀刃", r"刀片", r"自卫", r"防身",
-    r"pepper\s*spray", r"mace",
-    r"adult", r"sex", r"drug", r"supplement", r"alcohol", r"tobacco", r"gambling",
-    r"наркот", r"табак", r"алког", r"азарт",
-]
-ALLOWLIST_PATTERNS = [
-    r"маникюрн\w*\s+ножниц", r"\bножниц", r"scissors", r"nail\s+scissors", r"美甲剪", r"指甲剪"
-]
+# Category gating is intentionally disabled for this internal ecommerce image workflow.
+# The pipeline focuses on SKU truth, reference locking, copy correctness, and layout quality.
 
 ARCHETYPES = {
     "yellow_deodorant_sticker": {
@@ -86,6 +76,13 @@ ARCHETYPES = {
         "visual_mood": "durable, industrial, airtight, reliable",
         "must_preserve": ["brass/gold body", "silver clip", "thread opening", "connector geometry"],
         "sequence": ["hero-product", "compatibility", "airtight-seal", "size-spec", "material-quality", "steps-123", "fit-grid", "trust-closure"],
+    },
+    "office_craft_cutting_tool": {
+        "keywords": ["канцеляр", "канцелярский нож", "лезв", "cutter", "utility knife", "craft knife", "office knife", "美工刀", "裁纸刀", "切割", "刀片", "刀刃"],
+        "palette": "dark graphite / black / red or green technical accent / light spec page",
+        "visual_mood": "precise, compact, office craft, technical",
+        "must_preserve": ["long narrow black handle", "segmented steel blade", "slider ribs", "end cap notch", "9mm blade width", "130mm body length", "13mm body width"],
+        "sequence": ["hero-product", "material-macro", "product-callouts", "quantity-pack", "scene-grid", "size-spec", "steps-123", "trust-closure"],
     },
     "generic_household": {
         "keywords": [],
@@ -315,16 +312,6 @@ def flatten_text(obj: Any) -> str:
     return "\n".join(chunks)
 
 
-def is_restricted(text: str) -> Tuple[bool, str]:
-    low = text.lower()
-    allow = any(re.search(p, low, flags=re.IGNORECASE) for p in ALLOWLIST_PATTERNS)
-    for pat in RESTRICTED_PATTERNS:
-        if re.search(pat, low, flags=re.IGNORECASE):
-            if allow and pat in [r"\bнож\b", r"лезви", r"\bblade\b"]:
-                continue
-            return True, f"matched restricted pattern: {pat}"
-    return False, ""
-
 
 def classify_archetype(text: str) -> str:
     low = text.lower()
@@ -358,16 +345,20 @@ def _to_mm(value: float, unit: str) -> Optional[float]:
 
 def _dim_kind(context: str) -> str:
     c = context.lower()
-    # Order matters: "9 мм / лезвие" may sit next to "130 мм / длина".
-    # Prefer the closest semantic label and blade before generic length.
-    if any(k in c for k in ["лезв", "blade", "刀刃", "刀片"]):
-        return "blade_width"
-    if any(k in c for k in ["длина", "length", "long", "长", "长度"]):
-        return "length"
-    if any(k in c for k in ["ширина", "width", "wide", "宽", "宽度"]):
-        return "width"
-    if any(k in c for k in ["высота", "height", "高", "高度"]):
-        return "height"
+    groups = [
+        ("length", ["длина", "length", "long", "长", "长度"]),
+        ("width", ["ширина", "width", "wide", "宽", "宽度"]),
+        ("height", ["высота", "height", "高", "高度"]),
+        ("blade_width", ["лезв", "blade", "刀刃", "刀片"]),
+    ]
+    hits = []
+    for kind, keys in groups:
+        positions = [c.find(k) for k in keys if c.find(k) >= 0]
+        if positions:
+            hits.append((min(positions), kind))
+    if hits:
+        hits.sort(key=lambda x: x[0])
+        return hits[0][1]
     return "dimension"
 
 
@@ -468,6 +459,7 @@ def infer_product_name_ru(sku: Dict[str, Any], archetype: str) -> str:
         "warm_needle_set": "НАБОР ИГЛ",
         "beauty_manicure_scissors": "МАНИКЮРНЫЕ НОЖНИЦЫ",
         "auto_industrial_part": "БЫСТРОСЪЕМНЫЙ НАКОНЕЧНИК",
+        "office_craft_cutting_tool": "КАНЦЕЛЯРСКИЙ НОЖ",
         "generic_household": "ПОЛЕЗНЫЙ ТОВАР",
     }
     return defaults.get(archetype, "ПОЛЕЗНЫЙ ТОВАР")
@@ -488,6 +480,11 @@ def infer_badge(metrics: List[str], text: str, archetype: str) -> str:
         return "12 шт"
     if archetype == "beauty_manicure_scissors":
         return "9 см"
+    if archetype == "office_craft_cutting_tool":
+        for m in metrics:
+            if "мм" in m.lower():
+                return m
+        return "9 мм"
     return metrics[0] if metrics else ""
 
 
@@ -651,7 +648,6 @@ def build_contract(
     slot_plan = slot_plan or {}
     reference_manifest = reference_manifest or {}
     text = flatten_text({"sku": sku, "slot_plan": slot_plan})
-    restricted, reason = is_restricted(text)
     archetype = classify_archetype(text)
 
     dim_facts = extract_dimensional_facts(text)
@@ -659,18 +655,6 @@ def build_contract(
     geometry_lock = infer_geometry_lock(dim_facts, reference_manifest)
     reference_images = reference_manifest.get("primary_product_abs_refs") or reference_manifest.get("primary_product_refs") or []
 
-    if restricted:
-        return {
-            "contract_version": CONTRACT_VERSION,
-            "status": "needs_human_review",
-            "auto_generate_allowed": False,
-            "reason": reason or "restricted_or_sharp_tool_category",
-            "category_archetype": "sharp_tool_human_review",
-            "reference_images": reference_images,
-            "product_geometry_lock": geometry_lock,
-            "safety_note": "Sharp blade/tool category: do not run one-click high-click/high-conversion marketing generation. Use neutral human-reviewed factual imagery only.",
-            "slot_contracts": [],
-        }
 
     cfg = ARCHETYPES[archetype]
     title_ru = infer_product_name_ru(sku, archetype)

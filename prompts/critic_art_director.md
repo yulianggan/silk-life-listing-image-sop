@@ -17,7 +17,7 @@
 - `canvas_fill`：是否 full-bleed 3:4，无左右白边、截图边框、大 gutter。
 - `visual_hierarchy`：主标题、角标、产品、支持信息是否有清晰层级。
 - `set_consistency`：是否符合整套图色温、角标、版式语言。
-- `marketplace_safety`：是否避开限制类自动营销和夸大功效。
+- `claim_accuracy`：尺寸、数量、材质、效果描述是否与 SKU/参考图一致，是否避免无依据夸大。
 
 硬失败：
 
@@ -29,7 +29,6 @@
 - overlay 文字明显错位
 - 左右白边/截图边框明显
 - 产品被场景遮挡
-- 限制类商品却生成了高转化营销图
 
 输出 JSON：
 
@@ -44,7 +43,7 @@
     "canvas_fill": 0,
     "visual_hierarchy": 0,
     "set_consistency": 0,
-    "marketplace_safety": 0
+    "claim_accuracy": 0
   },
   "weighted": 0,
   "passed": false,
