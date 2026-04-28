@@ -1,162 +1,281 @@
 ---
 name: silk-life-listing-image-sop
-description: 丝绸生活 Ozon listing 美工套图 SOP（端到端 8 图位）。当用户提到"丝绸生活出图"、"silk listing 套图"、"类目套图"、"Ozon 8 张图"、"沟通图片"+"美工图"、"生成商详套图"时触发。吃一个类目"沟通图片"文件夹（含 xlsx 卖点表 + 网上下载的产品参考图），自动产出 8 张符合丝绸生活视觉语言（俄语 SEO 大字 + 绿色数字角标 + 类目色温 + 手部演示）的 listing PNG，用 GPT-4V 反向校验产品一致性 + CTR 风险，低于阈值自动重跑。底层调 ozon-listing-image 的 image2 edit 模式。
+description: >
+  丝绸生活 Ozon/Russian e-commerce listing 美工思维蒸馏 SOP。
+  适用于“沟通图片/卖点表/参考图 → 俄罗斯电商 8 张套图”的一键工作流：
+  先根据真实美工样例生成 ArtDirectorContract，再选择设计范式，Codex 只生成无字底图，
+  最后用 overlay_text.py 程序化叠加准确俄文，并用 critic 校验产品一致性、商业清晰度和 CTR 风险。
+  触发词：丝绸生活出图、Ozon 套图、listing 套图、沟通图片转美工图、蒸馏美工作图思维、俄罗斯电商图片。
 ---
 
-# 丝绸生活 Ozon Listing 美工套图 SOP
+# 丝绸生活 Ozon Listing 美工思维蒸馏 SOP
 
-> 把外部美工的工作蒸馏成 AI SOP。一次跑一个类目文件夹，1 小时内拿到 7 张套图 + 校验报告。
+## 0. 核心原则
 
-## 触发场景
+不要让 Cloud/Claude 直接写一段“好看的图片提示词”，也不要让 Codex 直接生成带完整俄文的成品图。
 
-- "丝绸生活 冰箱除味剂 出图"
-- "silk listing 套图 抗菌鞋垫贴纸"
-- "类目套图 美工刀"
-- "Ozon 7 张图"
-- "沟通图片转美工图"
+正确链路：
 
-## 端到端流程
-
-```
-输入：/Users/mac/Documents/ozns/丝绸生活/<类目>/沟通图片/
-       ├─ listing.xlsx（俄文标题 + 12 卖点 + 中文描述 + 可选竞品 URL）
-       ├─ 主_XX.jpg / main.png（产品白底图）
-       └─ image_X.jpg / Description_X.jpg（参考图）
-                ↓
-[1] parse_input.scan_category()        — xlsx/xls 宽容解析 + 参考图分桶
-[2] normalize.to_standard_sku()        — 字段归一化
-[3] normalize.augment_with_vision()    — ⭐ GPT-4V 看产品参考图反推 product_desc_en
-                                         （image2 模式必需，否则产品永远画错）
-[4] slot_planner.build_plan()          — 7 SlotSpec 生成
-[5] 8 slot **并行**（默认 4 worker，ThreadPoolExecutor）：
-        edit.py 调 codex 内置 image_gen（默认）→ jiekou.ai gpt-image-2-edit（兜底）
-        critic_gpt4v.review()         — 4 维评分（产品一致性 0.4 / 俄语 0.25 / 视觉层级 0.2 / CTR 风险 0.15）
-        if score < threshold: 注入 negative hint 重跑（最多 2 次）
-[6] report.render()                    — markdown 报告 + 4×2 拼版缩略图
-
-输出：output/<类目>/
-       ├─ slot_main.png ... slot_cert-review.png（8 张）
-       ├─ standard_sku.json
-       ├─ report.md（每张分数 + issues + 重跑次数）
-       └─ contact_sheet.jpg
+```text
+沟通图片 / listing 表 / 产品参考图
+  ↓
+DesignerDelta：如果有美工图，先比较“美工到底改了什么”
+  ↓
+ArtDirectorContract：像美工总监一样先判断商业意图、证据方式、版式、文字区
+  ↓
+DesignParadigm：选择稳定范式，如主图角标、尺寸图、步骤图、材质微距、场景网格
+  ↓
+CodexPlatePrompt：只生成无最终文字的视觉底图
+  ↓
+overlay_text.py：程序化叠加俄文标题、数字、角标、尺寸、步骤
+  ↓
+Critic：产品一致性优先，确认没有偏离实物，再看点击率和转化表达
 ```
 
-## CLI 入口
+这版 skill 的重点是 **美工判断层**，不是堆提示词。美工图不是把沟通图照搬得更漂亮，而是把杂乱素材压缩成买家一秒能懂的视觉答案。
+
+## 1. 安全与类目边界
+
+本 skill 默认只自动处理生活用品、护理用品、鞋服附件、收纳清洁、普通家居消耗品、普通车用配件等低风险商品。
+
+遇到锋利刀刃/刀具类、武器、自卫器材、危险化学品、成人用品、药品/补剂、烟酒、赌博相关商品，必须输出：
+
+```json
+{
+  "status": "needs_human_review",
+  "reason": "restricted_or_sharp_tool_category",
+  "auto_generate_allowed": false
+}
+```
+
+不要为这些类目生成高点击高转化营销图提示词，也不要生成购买强化文案。
+
+## 2. 输入约定
+
+```text
+<类目>/
+├─ 沟通图片/
+│  ├─ listing.xlsx 或 listing.xls
+│  ├─ 主图 / main / product / body 参考图
+│  ├─ scene / use / description 场景参考图
+│  └─ 可选：竞品截图、运营备注
+└─ 可选：美工图/ 或 美工图片/
+   ├─ 1.png / xd_1.jpeg / hou1.png ...
+   └─ 已完成的美工套图
+```
+
+文件夹名不稳定是正常情况：`美工图`、`美工图片`、`沟通图片`、`main`、`主图`、`Description`、`Variant` 都要兼容。
+
+## 3. 从真实样例蒸馏出的美工决策
+
+本版已吸收 6 组真实样例：
+
+| 案例 | 沟通图 | 美工图 | 美工核心取舍 |
+|---|---:|---:|---|
+| 透明硅胶后跟垫 | 33 | 8 | 灰白绿医护感；保护、尺寸、步骤、水洗、材质、前后对比、鞋型适配 |
+| 轮胎充气接头 | 20 | 8 | 黑橙工业感；主图冲击力强，规格/步骤仍保持白底清晰 |
+| 自穿线针套装 | 37 | 8 | 米色木质手工感；统一 12 支针，围绕木盒和金色针建立视觉锚点 |
+| 美甲剪 | 26 | 17 | 粉蓝美容感；参数图极简，人物图建立沙龙结果和信任 |
+| 办公切割工具 | 23 | 10 | 只作为视觉范式观察；自动高转化出图需 human review |
+| 黄色鞋垫除味贴 | 27 | 8 | 黄绿柠檬天然感；包装、数量、尺寸、步骤、成分、鞋型、7 天效果 |
+
+完整规则见：
+
+```text
+templates/designer_delta_bank.yaml
+templates/design_paradigms.yaml
+templates/art_director_rubric.yaml
+```
+
+### 3.1 共性规律
+
+1. **竖版 3:4 统一**：沟通图常是 800×800 或 1500×1500，美工图统一改成 900×1200 / 1200×1600。
+2. **一图一个问题**：主图回答“这是什么”，尺寸图回答“合不合适”，步骤图回答“怎么用”，材质图回答“为什么可靠”。
+3. **证据先于文案**：水洗就给水面，尺寸就给箭头，使用就给手部步骤，适配就给场景网格。
+4. **产品本体不动**：形状、颜色、包装、数量、孔点、螺纹、针眼、透明度、金属感不能被 AI 改。
+5. **俄文短而强**：主标题 2-6 个词，角标只放数字/规格/数量，副文最多 2-3 条短句。
+6. **色温按类目走**：鞋护/除味用绿黄白，美容用粉蓝白，手工针套用米色木质金色，车品用黑橙金属。
+7. **场景不能喧宾夺主**：人物、手、鞋、车轮、柠檬、布料只服务卖点，不允许盖过产品。
+
+## 4. ArtDirectorContract
+
+Cloud/Claude 必须先输出这个合同，再给 Codex：
+
+```json
+{
+  "contract_version": "2026-04-28-v2",
+  "status": "ready",
+  "auto_generate_allowed": true,
+  "category_archetype": "yellow_deodorant_sticker",
+  "set_style": {
+    "canvas": "1200x1600 or 900x1200, vertical 3:4",
+    "palette": "sunny yellow / lemon green / clean white",
+    "typography": "Cyrillic overlay only"
+  },
+  "sku_facts": {
+    "must_preserve": ["yellow sticker shape", "package color", "12 pcs"],
+    "forbidden_changes": ["do not change product color", "do not invent count"]
+  },
+  "slot_contracts": [
+    {
+      "slot_id": "hero-product",
+      "buyer_question": "买家第一眼要确认什么？",
+      "commercial_intent": "提升首图点击，同时确认数量和品类",
+      "selected_paradigm": "hero_spec_badge",
+      "visual_answer": "包装 + 产品 + 使用对象 + 数量角标",
+      "overlay_text_plan": {
+        "title": "СТИКЕРЫ ДЛЯ ОБУВИ",
+        "badge": "12 шт",
+        "subtitle": "для обуви"
+      },
+      "codex_plate_prompt": "Create a vertical 3:4 commercial product plate WITHOUT final readable text...",
+      "negative_prompt": [
+        "no final readable Cyrillic text",
+        "do not alter product shape",
+        "do not invent product count"
+      ],
+      "critic_checks": [
+        "product body same as reference",
+        "count and size facts preserved",
+        "main title readable after overlay"
+      ]
+    }
+  ]
+}
+```
+
+## 5. 设计范式选择
+
+优先使用这些范式：
+
+| 范式 | 用途 | 美工样例里的表现 |
+|---|---|---|
+| `hero_spec_badge` | 首图点击 | 大产品 + 俄文主标题 + 数字角标 |
+| `size_spec` | 尺寸规格 | 白底/浅底，产品居中，少量箭头和数字 |
+| `steps_123` | 使用步骤 | 三步卡片，每步一个动作 |
+| `scene_grid` | 适用范围 | 鞋型/车辆/材料/对象 2×2 网格 |
+| `before_after_result` | 效果证明 | 上下或左右对比 |
+| `material_macro` | 材质/成分 | 微距、成分道具、材质光泽 |
+| `quantity_pack` | 数量/套装 | 包装 + 多件铺陈 + 大数字 |
+| `lifestyle_human_scene` | 情绪和信任 | 人物或手部真实场景 |
+| `trust_closure` | 收口信任 | 品质标题 + 稳定产品图 |
+
+## 6. Codex 出图规则
+
+Codex 只做 **无字底图**：
+
+```text
+Create a vertical 3:4 Russian ecommerce visual plate.
+Do NOT render final readable Russian text.
+Leave clean blank zones for title, badge and labels.
+Keep the exact product from the reference: same shape, color, count, material and package.
+Use category palette: ...
+Composition: ...
+```
+
+强制负面约束：
+
+```text
+no fake Cyrillic text
+no unreadable glyphs
+no extra product variants
+do not change package color
+do not change count
+do not change product material
+do not crop away key product shape
+```
+
+## 7. 程序化叠字规则
+
+所有俄文用 `scripts/overlay_text.py` 叠加。不要让图像模型直接画俄文。
+
+原因：
+
+- 图像模型容易生成俄文乱码。
+- 俄文标题、尺寸、数量属于商品事实，不能随机变。
+- 程序叠字能稳定控制字号、位置、颜色和层级。
+
+推荐字体顺序：
+
+```text
+Arial / DejaVu Sans / Noto Sans CJK / system sans
+```
+
+## 8. Critic 硬阈值
+
+通过标准：
+
+```text
+product_fidelity >= 8.5
+weighted_score >= 7.8
+no fake Cyrillic
+no wrong quantity
+no wrong material
+no restricted auto-marketing
+```
+
+权重：
+
+```yaml
+product_fidelity: 0.42
+commercial_clarity: 0.20
+russian_text_correctness: 0.16
+visual_hierarchy: 0.12
+set_consistency: 0.06
+marketplace_safety: 0.04
+```
+
+产品一致性低于阈值时，不要为了 CTR 继续美化，直接重跑或标记人工审核。
+
+## 9. 一键流程
+
+最小接入：
 
 ```bash
-# 默认（推荐）：codex 内置 image_gen + 4 worker 并行 + jiekou 兜底
-python3 ~/.config/opencode/skill/silk-life-listing-image-sop/scripts/orchestrate.py \
-  --category-dir /Users/mac/Documents/ozns/丝绸生活/冰箱除味剂 \
-  --out-dir /tmp/silk-life-test/冰箱除味剂
-
-# 强制走 jiekou（旧链路、需要 jiekou API key）
-python3 .../orchestrate.py --category-dir ... --out-dir ... --backend jiekou
-
-# 串行调试（看每个 slot 输出）
-python3 .../orchestrate.py --category-dir ... --out-dir ... --no-parallel
-
-# 不让 codex 失败回退 jiekou（严格 codex-only）
-python3 .../orchestrate.py --category-dir ... --out-dir ... --no-fallback
+python3 scripts/art_director_contract.py \
+  output/<类目>/standard_sku.json \
+  --slot-plan output/<类目>/slot_plan.json \
+  --out output/<类目>/art_director_contract.json
 ```
 
-## Backend 选择
+生成给 Codex 的任务：
 
-| Backend | 鉴权 | 计费 | 稳定性 | 默认 |
-|---|---|---|---|---|
-| `codex` | ChatGPT 登录态（无 API key） | ChatGPT 配额 | 强 | ✅ |
-| `jiekou` | `~/.config/jiekou_api_key` | jiekou 套餐 | 偶发 5xx | 兜底 |
-
-- 默认 `--backend codex --fallback`：codex 失败自动回退 jiekou
-- codex 内置 `image_gen` 工具走 ChatGPT 通道，不消耗 jiekou 额度
-- 单图实测：codex 90-150s（含 codex CLI 调度开销 ~60s），jiekou 60-120s
-- 8 图 4 worker 并行 ≈ 2-4 min（vs 串行 13-20 min）
-
-## 为什么不用 team-mode MCP
-
-用户提到 "team-mode 拉多个 codex 成员"，实际实现走 ThreadPoolExecutor 而非 team-mode MCP。原因：
-
-- team-mode MCP（`mcp__team-mode__*`）是 agent-to-agent 通信层（rooms / inbox / message），需要 agent 主动注册到 team 里
-- codex CLI 是 subprocess，不会主动连 team-mode MCP server，无法成为 team member
-- 我们要的核心是"并行 spawn N 个 codex 进程"——`concurrent.futures.ThreadPoolExecutor` 直接搞定，零依赖
-- 每个 codex exec 子进程独立 thread_id（落到 `~/.codex/generated_images/<thread_id>/`），互不冲突
-- 后续如需 observability（向 team-mode room 推送进度），可在 orchestrate.py 里加 progress_callback 钩子
-
-## 8 图位标准序列（与历史美工图 xd_1.jpeg ~ xd_8.jpeg 对齐）
-
-| Slot | 内容 | 关键视觉元素 | 数据来源 |
-|---|---|---|---|
-| 1 main | 主图 | 俄语 SEO 大字 + 绿色数字角标 + 手 | 标题 + 卖点 1 |
-| 2 detail-size | 尺寸/规格图 | 数字标注 + 箭头 + 白底 | 卖点 2-3 |
-| 3 detail-compare | 对比图 | ОБЫЧНЫЙ vs НАШ 分屏 | 卖点 4-5 |
-| 4 material | 材质细节 | 微距特写 | 卖点 6-7 |
-| 5 use-scene | 使用场景 | 类目色温 + 真实生活 | 卖点 8-9 |
-| 6 hand-demo | 手部演示 | 手持/操作产品特写，"丝绸生活"独立强势元素 | 卖点 1（强化） |
-| 7 package | 包装展示 | 盒装 + 数量徽章 | 卖点 10 |
-| 8 cert-review | 认证/评价 | 5 星 + ХИТ 信任徽章 | 卖点 11-12 |
-
-## "丝绸生活"视觉风格 Token
-
-- 俄语粗体大字（Cyrillic）
-- 绿色圆形/胶囊角标（含数字+单位"6 месяцев"/"12 штук"或生态词"без отдушки"）
-- 手部真实演示
-- **类目色温映射**：
-  - 生活类（除味剂/后跟贴/鞋垫）→ 绿黄场景
-  - 工具类（指甲剪/美工刀/轮胎接头/针套装）→ 深蓝/金属/木质
-
-## 反向校验机制
-
-| 维度 | 权重 | 评分依据 | 硬阈值 |
-|---|---|---|---|
-| 产品一致性 | 0.4 | 与参考图 body 比对（颜色、形状、关键特征） | < 8 强制重跑 |
-| 俄语渲染 | 0.25 | OCR + 关键词命中率 | < 7 重跑 |
-| 卖点视觉层级 | 0.2 | 主标题 / 角标 / 副文 三级清晰 | — |
-| CTR 风险 | 0.15 | 字体劣质/布局拥挤/颜色脏扣分 | — |
-
-加权 ≥ 7.5 通过。最多重跑 2 次，仍不过标记 `needs_human`，不阻塞其他 slot。
-
-## 文件结构
-
-```
-silk-life-listing-image-sop/
-├── SKILL.md                     # 本文件
-├── scripts/
-│   ├── orchestrate.py           # 主入口
-│   ├── parse_input.py           # xlsx/xls 宽容解析 + 参考图分桶
-│   ├── normalize.py             # 归一化 + GPT-4V 视觉反推 product_desc_en
-│   ├── slot_planner.py          # 7 SlotSpec 生成
-│   ├── critic_gpt4v.py          # GPT-4V 反向校验
-│   └── report.py                # markdown + 拼版
-├── templates/
-│   ├── color_palette.yaml       # 类目→色温映射
-│   └── critic_rubric.yaml       # 校验维度+权重+阈值
-└── prompts/
-    ├── visual_descriptor.md     # GPT-4V 视觉反推 system prompt
-    └── critic_system.md         # GPT-4V 校验 system prompt
+```bash
+python3 scripts/one_click_ru_listing.py \
+  --standard-sku output/<类目>/standard_sku.json \
+  --slot-plan output/<类目>/slot_plan.json \
+  --out-dir output/<类目>
 ```
 
-## 依赖
+Codex 生成每张无字 `plate.png` 后叠字：
 
-- ozon-listing-image skill（image2 edit 模式）— 底层调用
-- jiekou.ai API key（`~/.config/jiekou_api_key`，与 ozon-listing-image 共用）
-- Python：openpyxl, xlrd 1.x, Pillow, PyYAML（视觉反推与 critic 用 jiekou.ai 的 chat completions 端点，不用 openai SDK）
+```bash
+python3 scripts/overlay_text.py \
+  output/<类目>/plates/hero-product.png \
+  output/<类目>/art_director_contract.json \
+  --slot-id hero-product \
+  --out output/<类目>/slot_hero-product.png
+```
 
-## 输入侧已知不一致（parse_input 已容错）
+## 10. 样例蒸馏流程
 
-- 针套装 listing 是 `.xls` 古格式（OLE Composite，需要 xlrd 1.x）
-- 轮胎充气接头 xlsx 列名只有 A/B/D（无俄语/中文标题）
-- 后跟贴 sheet 名是 `Sheet1`、只有 8 行卖点
-- 主图前缀混乱：`主_` / `主图_` / `main` 都有
-- 美工图文件夹有的叫 `美工图片` 有的叫 `美工图`
+后续继续喂“沟通图片 + 美工图”时，先跑：
 
-## 触发场景关键词（更多）
+```bash
+python3 scripts/distill_designer_cases.py \
+  --input-zips /path/to/*.zip \
+  --out-dir training_cases
+```
 
-- 丝绸生活、Ozon 7 图、套图、商详、listing、美工
-- 冰箱除味剂、后跟贴、抗菌鞋垫贴纸、指甲剪、美工刀、轮胎充气接头、针套装
-- 沟通图片、美工图、main 图、详情图
+它会输出：
 
-## 后续可扩展
+```text
+training_cases/
+├─ extracted/
+├─ manifest.json
+├─ contact_sheets/
+├─ art_sheets/
+└─ distillation_index.md
+```
 
-- [ ] 接 Ozon API 自动 A/B 上架
-- [ ] 7 天后自动从 mongo 拉 CR 数据出胜负判定
-- [ ] 飞书自动推送 report.md
-- [ ] mask 蒙版精确控制重绘区域（v2）
+然后用 `prompts/designer_delta_distillation.md` 对新样例继续补充 `templates/designer_delta_bank.yaml`。
