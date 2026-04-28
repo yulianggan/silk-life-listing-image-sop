@@ -1,26 +1,42 @@
 #!/usr/bin/env python3
 """Build ArtDirectorContract for Silk Life Russian ecommerce listing images.
 
-The contract is the handoff between Cloud/Claude and Codex:
-SKU facts -> category archetype -> 8 design slots -> no-text Codex plate prompts -> overlay text plan.
+v3 adds reference-locked generation:
+  SKU facts + communication reference_manifest -> category archetype -> design slots
+  -> Codex no-text plate prompts with reference_images
+  -> overlay_text.py owns all text cards and final Russian text.
 
-It intentionally does not call external APIs.
+The image model must not guess the SKU from text. It must use selected product
+reference images as the immutable product anchor.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-CONTRACT_VERSION = "2026-04-28-v2"
-DEFAULT_CANVAS = {"ratio": "3:4", "preferred": "1200x1600 or 900x1200"}
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+CONTRACT_VERSION = "2026-04-28-v3-reference-lock"
+DEFAULT_CANVAS = {
+    "ratio": "3:4",
+    "preferred": "1200x1600",
+    "fit": "full_bleed_cover",
+    "no_side_margins": True,
+}
 
 METRIC_RE = re.compile(
     r"(\d+(?:[.,]\d+)?)\s*(мм|см|м|мл|л|г|кг|шт|штук|дней|дня|месяц(?:ев|а)?|час(?:а|ов)?|°)\b",
     re.IGNORECASE,
 )
+# Dimensions are extracted from METRIC_RE with local context windows.
+# Do not use a greedy context regex because adjacent values such as
+# "9 мм / лезвие, 130 мм / длина, 13 мм / ширина" must remain separate.
 
 # Sharp utility knives and similar exposed blade products should not be auto-marketed.
 RESTRICTED_PATTERNS = [
@@ -85,7 +101,7 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "paradigm": "hero_spec_badge",
         "buyer_question": "第一眼这是什么，核心规格/数量是什么？",
         "commercial_intent": "提升首图点击并确认商品身份。",
-        "visual_answer": "产品或包装大图 + 类目色背景 + 一个数字/规格角标。",
+        "visual_answer": "真实产品或包装大图 + 类目色背景 + 一个数字/规格角标。",
         "title": None,
         "badge": None,
     },
@@ -107,7 +123,7 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "paradigm": "size_spec",
         "buyer_question": "尺寸是否合适？",
         "commercial_intent": "降低因尺寸不确定导致的犹豫。",
-        "visual_answer": "白/浅底产品居中，2-4 个尺寸箭头。",
+        "visual_answer": "浅底产品居中，2-4 个由 overlay 绘制的尺寸箭头/数字卡片。",
         "title": "ОПТИМАЛЬНЫЙ РАЗМЕР",
     },
     "steps-123": {
@@ -121,7 +137,7 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "paradigm": "material_macro",
         "buyer_question": "它为什么有效？",
         "commercial_intent": "用成分机制建立合理性。",
-        "visual_answer": "产品 + 2-3 个成分/吸附元素，用箭头连接。",
+        "visual_answer": "产品 + 2-3 个成分/吸附元素，用轻量箭头连接。",
         "title": "НАТУРАЛЬНЫЙ СОСТАВ",
     },
     "shoe-fit-grid": {
@@ -261,7 +277,7 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "paradigm": "product_callouts",
         "buyer_question": "有哪些关键结构/卖点？",
         "commercial_intent": "把结构转成购买理由。",
-        "visual_answer": "产品居中，周围短标签圈注。",
+        "visual_answer": "真实产品居中，周围由 overlay 绘制短标签圈注。",
         "title": "ОСНОВНЫЕ ПРЕИМУЩЕСТВА",
     },
     "scene-grid": {
@@ -301,7 +317,6 @@ def flatten_text(obj: Any) -> str:
 
 def is_restricted(text: str) -> Tuple[bool, str]:
     low = text.lower()
-    # allow manicure/nail scissors language; do not allow utility knives/cutters.
     allow = any(re.search(p, low, flags=re.IGNORECASE) for p in ALLOWLIST_PATTERNS)
     for pat in RESTRICTED_PATTERNS:
         if re.search(pat, low, flags=re.IGNORECASE):
@@ -327,7 +342,102 @@ def extract_metrics(text: str) -> List[str]:
         item = f"{m.group(1).replace(',', '.')} {m.group(2)}"
         if item not in found:
             found.append(item)
-    return found[:8]
+    return found[:10]
+
+
+def _to_mm(value: float, unit: str) -> Optional[float]:
+    unit = unit.lower()
+    if unit == "мм":
+        return value
+    if unit == "см":
+        return value * 10
+    if unit == "м":
+        return value * 1000
+    return None
+
+
+def _dim_kind(context: str) -> str:
+    c = context.lower()
+    # Order matters: "9 мм / лезвие" may sit next to "130 мм / длина".
+    # Prefer the closest semantic label and blade before generic length.
+    if any(k in c for k in ["лезв", "blade", "刀刃", "刀片"]):
+        return "blade_width"
+    if any(k in c for k in ["длина", "length", "long", "长", "长度"]):
+        return "length"
+    if any(k in c for k in ["ширина", "width", "wide", "宽", "宽度"]):
+        return "width"
+    if any(k in c for k in ["высота", "height", "高", "高度"]):
+        return "height"
+    return "dimension"
+
+
+def extract_dimensional_facts(text: str) -> List[Dict[str, Any]]:
+    facts: List[Dict[str, Any]] = []
+    seen = set()
+    for m in METRIC_RE.finditer(text):
+        raw = f"{m.group(1).replace(',', '.')} {m.group(2)}"
+        unit = m.group(2)
+        try:
+            value = float(m.group(1).replace(",", "."))
+        except ValueError:
+            continue
+        value_mm = _to_mm(value, unit)
+
+        # Prefer labels immediately after the metric: "130 мм / длина".
+        after = text[m.end(): m.end() + 22]
+        before = text[max(0, m.start() - 14): m.start()]
+        kind = _dim_kind(after)
+        if kind == "dimension":
+            kind = _dim_kind(before)
+        if kind == "dimension" and value_mm is None:
+            kind = "metric"
+
+        rec = {
+            "raw": raw,
+            "value": value,
+            "unit": unit,
+            "value_mm": round(value_mm, 3) if value_mm is not None else None,
+            "kind": kind,
+            "context": " ".join(f"{before} {after}".split())[:80],
+        }
+        key = (rec["raw"], rec["kind"], rec.get("context", ""))
+        if key not in seen:
+            facts.append(rec)
+            seen.add(key)
+    return facts[:12]
+
+
+def infer_geometry_lock(dim_facts: List[Dict[str, Any]], reference_manifest: Dict[str, Any]) -> Dict[str, Any]:
+    length_mm = next((f["value_mm"] for f in dim_facts if f.get("kind") == "length" and f.get("value_mm")), None)
+    width_mm = next((f["value_mm"] for f in dim_facts if f.get("kind") == "width" and f.get("value_mm")), None)
+    ratio = None
+    if length_mm and width_mm and width_mm > 0:
+        ratio = round(float(length_mm) / float(width_mm), 3)
+    else:
+        vals = sorted({float(f["value_mm"]) for f in dim_facts if f.get("value_mm") and float(f["value_mm"]) > 0})
+        if len(vals) >= 2:
+            # Prefer the largest physical length divided by a plausible body width.
+            largest = vals[-1]
+            plausible_widths = [v for v in vals[:-1] if v >= largest * 0.06]
+            if plausible_widths:
+                ratio = round(largest / plausible_widths[0], 3)
+
+    rules = [
+        "Use the selected/attached real product image as the immutable product anchor.",
+        "Do not redraw the product from text memory.",
+        "Preserve the exact silhouette, length, width, thickness, color, material, package, count and key structural details.",
+        "Do not shorten, fatten, thicken, bend, recolor, simplify, or replace the SKU with a similar product.",
+    ]
+    if ratio and ratio >= 4:
+        rules.append(f"Preserve the slender long-body geometry; target length-to-width ratio is about {ratio}:1.")
+    return {
+        "mode": "strict_reference_lock",
+        "physical_length_to_width_ratio_estimate": ratio,
+        "dimensional_facts": dim_facts,
+        "primary_product_refs": reference_manifest.get("primary_product_refs", []),
+        "primary_product_abs_refs": reference_manifest.get("primary_product_abs_refs", []),
+        "rules": rules,
+    }
 
 
 def pick_value(sku: Dict[str, Any], keys: Iterable[str], default: str = "") -> str:
@@ -364,7 +474,6 @@ def infer_product_name_ru(sku: Dict[str, Any], archetype: str) -> str:
 
 
 def infer_badge(metrics: List[str], text: str, archetype: str) -> str:
-    # Prefer count, duration, then first metric.
     for m in metrics:
         if any(unit in m.lower() for unit in ["шт", "штук"]):
             return m
@@ -401,10 +510,7 @@ def slot_plan_ids(slot_plan: Dict[str, Any]) -> List[str]:
 
 def normalize_sequence(archetype: str, slot_plan: Dict[str, Any], max_slots: int) -> List[str]:
     from_plan = slot_plan_ids(slot_plan)
-    if from_plan:
-        seq = from_plan
-    else:
-        seq = ARCHETYPES[archetype]["sequence"]
+    seq = from_plan if from_plan else ARCHETYPES[archetype]["sequence"]
     result: List[str] = []
     for sid in seq:
         if sid not in result:
@@ -412,15 +518,52 @@ def normalize_sequence(archetype: str, slot_plan: Dict[str, Any], max_slots: int
     return result[:max_slots]
 
 
-def overlay_plan_for_slot(slot_id: str, title: str, badge: str, metrics: List[str]) -> Dict[str, Any]:
+def _box(x: float, y: float, w: float, h: float, style: str) -> Dict[str, Any]:
+    return {"xywh": [round(x, 4), round(y, 4), round(w, 4), round(h, 4)], "style": style}
+
+
+def _dimension_text(fact: Dict[str, Any]) -> str:
+    raw = fact.get("raw", "")
+    kind = fact.get("kind")
+    suffix = {
+        "length": "длина",
+        "width": "ширина",
+        "height": "высота",
+        "blade_width": "лезвие",
+    }.get(kind)
+    return f"{raw} / {suffix}" if suffix else raw
+
+
+def extract_bullets_ru(sku: Dict[str, Any]) -> List[str]:
+    keys = ["bullets_ru", "benefits_ru", "features_ru", "selling_points_ru"]
+    for key in keys:
+        cur = sku.get(key)
+        if isinstance(cur, list):
+            return [str(x).strip() for x in cur if str(x).strip()][:4]
+        if isinstance(cur, str) and cur.strip():
+            parts = re.split(r"[\n;；|]+", cur)
+            return [p.strip() for p in parts if p.strip()][:4]
+    return []
+
+
+def overlay_plan_for_slot(
+    slot_id: str,
+    title: str,
+    badge: str,
+    metrics: List[str],
+    dim_facts: List[Dict[str, Any]],
+    sku: Dict[str, Any],
+) -> Dict[str, Any]:
     spec = SLOT_DEFAULTS.get(slot_id, SLOT_DEFAULTS["product-callouts"])
     slot_title = spec.get("title") or title
     if slot_id == "hero-product":
         slot_title = title
+
     plan: Dict[str, Any] = {
         "title": slot_title,
-        "title_zone": "top",
+        "title_box": _box(0.06, 0.04, 0.88, 0.125, "white_pill"),
         "subtitle": "",
+        "subtitle_box": _box(0.08, 0.84, 0.84, 0.075, "white_pill"),
         "badges": [],
         "labels": [],
         "dimensions": [],
@@ -429,35 +572,73 @@ def overlay_plan_for_slot(slot_id: str, title: str, badge: str, metrics: List[st
             "font_family": "DejaVu Sans or Arial with Cyrillic support",
             "title_weight": "bold",
             "title_case": "upper or title",
+            "cards_owned_by": "overlay_text.py",
         }
     }
+
     if badge and slot_id in ["hero-product", "quantity-pack", "duration-effect"]:
-        plan["badges"].append({"text": badge, "zone": "side_or_top", "shape": "circle_or_pill"})
-    if slot_id == "size-spec" and metrics:
-        plan["dimensions"] = metrics[:4]
+        plan["badges"].append({"text": badge, "box": _box(0.06, 0.18, 0.25, 0.10, "green_badge")})
+
+    if slot_id == "size-spec":
+        facts = [f for f in dim_facts if f.get("unit") in ["мм", "см", "м"]]
+        preferred = [f for f in facts if f.get("kind") in ["length", "width", "height", "blade_width"]]
+        use_facts = (preferred or facts)[:4]
+        default_boxes = [
+            _box(0.66, 0.28, 0.28, 0.06, "white_card"),
+            _box(0.66, 0.36, 0.28, 0.06, "white_card"),
+            _box(0.66, 0.44, 0.28, 0.06, "white_card"),
+            _box(0.66, 0.52, 0.28, 0.06, "white_card"),
+        ]
+        if use_facts:
+            plan["dimensions"] = [{"text": _dimension_text(f), "box": default_boxes[i]} for i, f in enumerate(use_facts[:4])]
+        elif metrics:
+            plan["dimensions"] = [{"text": m, "box": default_boxes[i]} for i, m in enumerate(metrics[:4])]
+
     if slot_id == "steps-123":
         plan["steps"] = [
-            {"n": 1, "caption": "ШАГ 1"},
-            {"n": 2, "caption": "ШАГ 2"},
-            {"n": 3, "caption": "ШАГ 3"},
+            {"n": 1, "caption": "ШАГ 1", "box": _box(0.08, 0.82, 0.21, 0.065, "green_badge")},
+            {"n": 2, "caption": "ШАГ 2", "box": _box(0.395, 0.82, 0.21, 0.065, "green_badge")},
+            {"n": 3, "caption": "ШАГ 3", "box": _box(0.71, 0.82, 0.21, 0.065, "green_badge")},
         ]
+
+    if slot_id == "product-callouts":
+        bullets = extract_bullets_ru(sku)
+        label_boxes = [
+            _box(0.06, 0.30, 0.28, 0.055, "white_card"),
+            _box(0.66, 0.30, 0.28, 0.055, "white_card"),
+            _box(0.06, 0.58, 0.28, 0.055, "white_card"),
+            _box(0.66, 0.58, 0.28, 0.055, "white_card"),
+        ]
+        for i, txt in enumerate(bullets[:4]):
+            plan["labels"].append({"text": txt, "box": label_boxes[i]})
+
+    if slot_id in ["material-macro", "material-quality"] and not plan["labels"]:
+        bullets = extract_bullets_ru(sku)
+        if bullets:
+            plan["labels"].append({"text": bullets[0], "box": _box(0.08, 0.82, 0.84, 0.075, "white_pill")})
+
     return plan
 
 
 def build_plate_prompt(archetype: str, slot_id: str, slot: Dict[str, Any], cfg: Dict[str, Any]) -> str:
-    paradigm = slot["selected_paradigm"]
+    geometry = slot.get("layout_plan", {}).get("product_geometry_lock", {})
+    ratio = geometry.get("physical_length_to_width_ratio_estimate")
+    ratio_sentence = f" Preserve the product's slender length-to-width ratio around {ratio}:1." if ratio else ""
     return (
-        "Create a vertical 3:4 commercial Russian ecommerce product visual plate. "
+        "Create a vertical 3:4 full-bleed Russian ecommerce product visual plate. "
+        "Use the attached/selected real product reference image(s) as the immutable product anchor. "
+        "Do not generate or redraw the product from text memory. "
+        "Preserve the same silhouette, length, width, thickness, color, material, package, count, and key structural details."
+        f"{ratio_sentence} "
         "Do NOT render final readable Russian or Cyrillic text. "
-        "Leave clean blank zones for overlay title, badge, labels, dimensions or step numbers. "
-        "Use only blank rounded label boxes or subtle placeholder shapes where text will be overlaid later. "
+        "Do NOT draw placeholder text cards, empty rounded boxes, UI frames, random label outlines, or fake glyphs. "
+        "Only leave smooth clean background in overlay safe zones; overlay_text.py will draw all cards and text later. "
+        "Fill the entire 3:4 canvas edge-to-edge with commercial background: no side white borders, no gutters, no empty left/right margins. "
         f"Category archetype: {archetype}. Palette and mood: {cfg['palette']} / {cfg['visual_mood']}. "
-        f"Design paradigm: {paradigm}. "
+        f"Design paradigm: {slot['selected_paradigm']}. "
         f"Buyer question: {slot['buyer_question']}. "
         f"Visual answer: {slot['visual_answer']}. "
-        "Keep the exact product from reference images: same shape, color, material, package, count, and key details. "
-        "Use clean commercial lighting, high perceived quality, and generous negative space. "
-        "Do not invent extra product variants or change factual specifications."
+        "Use clean commercial lighting and high perceived quality while keeping factual product fidelity above all."
     )
 
 
@@ -465,12 +646,19 @@ def build_contract(
     sku: Dict[str, Any],
     slot_plan: Optional[Dict[str, Any]] = None,
     max_slots: int = 8,
+    reference_manifest: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     slot_plan = slot_plan or {}
+    reference_manifest = reference_manifest or {}
     text = flatten_text({"sku": sku, "slot_plan": slot_plan})
     restricted, reason = is_restricted(text)
     archetype = classify_archetype(text)
-    # Utility knife/cutter should remain restricted even if generic.
+
+    dim_facts = extract_dimensional_facts(text)
+    metrics = extract_metrics(text)
+    geometry_lock = infer_geometry_lock(dim_facts, reference_manifest)
+    reference_images = reference_manifest.get("primary_product_abs_refs") or reference_manifest.get("primary_product_refs") or []
+
     if restricted:
         return {
             "contract_version": CONTRACT_VERSION,
@@ -478,11 +666,13 @@ def build_contract(
             "auto_generate_allowed": False,
             "reason": reason or "restricted_or_sharp_tool_category",
             "category_archetype": "sharp_tool_human_review",
+            "reference_images": reference_images,
+            "product_geometry_lock": geometry_lock,
+            "safety_note": "Sharp blade/tool category: do not run one-click high-click/high-conversion marketing generation. Use neutral human-reviewed factual imagery only.",
             "slot_contracts": [],
         }
 
     cfg = ARCHETYPES[archetype]
-    metrics = extract_metrics(text)
     title_ru = infer_product_name_ru(sku, archetype)
     badge = infer_badge(metrics, text, archetype)
     seq = normalize_sequence(archetype, slot_plan, max_slots)
@@ -490,13 +680,20 @@ def build_contract(
     sku_facts = {
         "product_name_ru": title_ru,
         "metrics_detected": metrics,
-        "must_preserve": cfg["must_preserve"],
+        "dimensional_facts": dim_facts,
+        "must_preserve": cfg["must_preserve"] + [
+            "selected real product reference image identity",
+            "length-to-width ratio and silhouette",
+        ],
         "forbidden_changes": [
             "do not change product shape",
             "do not change product color",
+            "do not shorten, fatten, thicken, bend, recolor, simplify, or replace the product",
             "do not invent package or count",
             "do not alter material appearance",
             "do not render final readable Cyrillic text in the image model",
+            "do not draw placeholder text cards or empty rounded boxes in Codex plate",
+            "do not leave side white borders or large left/right gutters",
         ],
     }
 
@@ -513,24 +710,37 @@ def build_contract(
             "layout_plan": {
                 "canvas": DEFAULT_CANVAS,
                 "palette": cfg["palette"],
-                "product_truth": "use reference product as immutable object",
-                "text_policy": "no final text in Codex plate; overlay later",
+                "product_rendering_mode": "locked_reference_composite",
+                "reference_images": reference_images,
+                "product_geometry_lock": geometry_lock,
+                "background": "full-bleed edge-to-edge commercial background; no side margins",
+                "text_policy": "no final text/cards/placeholders in Codex plate; overlay_text.py draws all cards and text",
             },
-            "overlay_text_plan": overlay_plan_for_slot(slot_id, title_ru, badge, metrics),
+            "overlay_text_plan": overlay_plan_for_slot(slot_id, title_ru, badge, metrics, dim_facts, sku),
             "negative_prompt": [
                 "no final readable Cyrillic text",
                 "no fake glyphs or garbled letters",
+                "no placeholder text boxes",
+                "no empty rounded label cards",
+                "no random UI frames",
+                "no side white borders",
+                "no left/right empty gutters",
                 "do not alter product shape",
+                "do not alter product length-to-width ratio",
+                "do not make the product shorter, fatter, thicker, or simplified",
                 "do not alter product color",
                 "do not invent extra items",
                 "do not change package or count",
                 "no cluttered low-quality collage",
             ],
             "critic_checks": [
-                "product body matches reference",
+                "primary product body matches selected reference image",
+                "length-to-width ratio and silhouette preserved",
                 "quantity/size/material facts are preserved",
                 "one buyer question is answered clearly",
-                "text can be overlaid in safe zones",
+                "no model-generated placeholder cards or fake Cyrillic",
+                "overlay text boxes align with the final design",
+                "canvas is full-bleed 3:4 without side gutters",
                 "set palette matches category archetype",
             ],
         }
@@ -542,11 +752,18 @@ def build_contract(
         "status": "ready",
         "auto_generate_allowed": True,
         "category_archetype": archetype,
+        "reference_images": reference_images,
+        "reference_manifest": {
+            "primary_product_refs": reference_manifest.get("primary_product_refs", []),
+            "needs_visual_confirmation": reference_manifest.get("needs_visual_confirmation", False),
+            "vision_instruction": reference_manifest.get("vision_instruction", ""),
+        },
+        "product_geometry_lock": geometry_lock,
         "set_style": {
             "canvas": DEFAULT_CANVAS,
             "palette": cfg["palette"],
             "visual_mood": cfg["visual_mood"],
-            "typography": "programmatic Cyrillic overlay only",
+            "typography": "programmatic Cyrillic overlay only; overlay script owns cards",
         },
         "sku_facts": sku_facts,
         "slot_contracts": contracts,
@@ -557,13 +774,25 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("standard_sku", type=Path, help="Path to standard_sku.json")
     parser.add_argument("--slot-plan", type=Path, default=None, help="Optional slot_plan.json")
+    parser.add_argument("--reference-manifest", type=Path, default=None, help="Optional reference_manifest.json from reference_selector.py")
+    parser.add_argument("--comm-dir", type=Path, default=None, help="Optional 沟通图片 folder; creates reference manifest next to output")
     parser.add_argument("--out", type=Path, default=Path("art_director_contract.json"))
     parser.add_argument("--max-slots", type=int, default=8)
     args = parser.parse_args()
 
     sku = load_json(args.standard_sku)
     slot_plan = load_json(args.slot_plan) if args.slot_plan else {}
-    contract = build_contract(sku, slot_plan, max_slots=args.max_slots)
+    reference_manifest: Dict[str, Any] = {}
+    if args.reference_manifest:
+        reference_manifest = load_json(args.reference_manifest)
+    elif args.comm_dir:
+        from reference_selector import build_reference_manifest
+        reference_manifest = build_reference_manifest(args.comm_dir)
+        ref_out = args.out.parent / "reference_manifest.json"
+        ref_out.parent.mkdir(parents=True, exist_ok=True)
+        ref_out.write_text(json.dumps(reference_manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    contract = build_contract(sku, slot_plan, max_slots=args.max_slots, reference_manifest=reference_manifest)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"wrote {args.out} status={contract.get('status')} slots={len(contract.get('slot_contracts', []))}")
