@@ -25,9 +25,14 @@ import sys
 import tempfile
 from pathlib import Path
 
-CHAT_API_URL = "https://api.jiekou.ai/openai/chat/completions"
-DEFAULT_KEY_FILE = Path.home() / ".config" / "jiekou_api_key"
-CRITIC_MODEL = "gpt-5.4-mini"
+# Default to self-hosted gpt-image-2 endpoint (same auth + model id as image gen).
+# Override with env CRITIC_BASE_URL / CRITIC_KEY_FILE / CRITIC_MODEL or fall back
+# to jiekou.ai by setting CRITIC_BASE_URL=https://api.jiekou.ai/openai.
+DEFAULT_CHAT_BASE = "http://193.122.147.249:8317/v1"
+DEFAULT_KEY_FILE = Path.home() / ".config" / "gpt_image_api_key"
+JIEKOU_KEY_FILE = Path.home() / ".config" / "jiekou_api_key"
+CHAT_API_URL = os.environ.get("CRITIC_BASE_URL", DEFAULT_CHAT_BASE).rstrip("/") + "/chat/completions"
+CRITIC_MODEL = os.environ.get("CRITIC_MODEL", "gpt-5.4-mini")
 
 WEIGHTS = {
     "product_consistency": 0.4,
@@ -120,12 +125,19 @@ def slot_compliance_addendum(slot_id: str) -> str:
 
 
 def load_api_key(key_file: Path = DEFAULT_KEY_FILE) -> str:
-    env = os.environ.get("JIEKOU_API_KEY")
+    """Load critic API key. Priority: CRITIC_API_KEY env > CRITIC_KEY_FILE env > default key file > jiekou fallback."""
+    env = os.environ.get("CRITIC_API_KEY") or os.environ.get("GPT_IMAGE_API_KEY")
     if env:
         return env.strip()
+    custom_kf = os.environ.get("CRITIC_KEY_FILE")
+    if custom_kf and Path(custom_kf).exists():
+        return Path(custom_kf).read_text(encoding="utf-8").strip()
     if key_file.exists():
         return key_file.read_text(encoding="utf-8").strip()
-    raise SystemExit(f"❌ API key 未找到")
+    # legacy jiekou fallback
+    if JIEKOU_KEY_FILE.exists():
+        return JIEKOU_KEY_FILE.read_text(encoding="utf-8").strip()
+    raise SystemExit(f"❌ Critic API key not found (looked at $CRITIC_API_KEY / {key_file} / {JIEKOU_KEY_FILE})")
 
 
 def _img_to_data_url(p: Path) -> str:
