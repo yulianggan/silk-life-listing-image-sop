@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -49,13 +50,14 @@ def multiline_bbox(draw: ImageDraw.ImageDraw, lines: List[str], font: ImageFont.
     return (0, 0, max(widths) if widths else 0, sum(heights) + spacing * max(0, len(lines) - 1))
 
 
-def wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, max_w: int, max_lines: int = 3) -> List[str]:
+def wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, max_w: int, max_lines: int = 3, _label: str = "") -> List[str]:
     text = (text or "").strip()
     if not text:
         return []
     words = text.split()
     lines: List[str] = []
     cur = ""
+    overflow = False
     for idx, word in enumerate(words):
         trial = word if not cur else f"{cur} {word}"
         b = draw.textbbox((0, 0), trial, font=font)
@@ -65,11 +67,15 @@ def wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, m
             if len(lines) >= max_lines - 1:
                 rest = " ".join(words[idx:])
                 cur = f"{cur} {rest}".strip()
+                overflow = True
                 break
             lines.append(cur)
             cur = word
     if cur and len(lines) < max_lines:
         lines.append(cur)
+    if overflow:
+        tag = f" [{_label}]" if _label else ""
+        sys.stderr.write(f"⚠ overlay_text wrap_text overflow{tag}: text exceeds max_lines={max_lines}; final line crammed: {repr(text)[:120]}\n")
     return lines[:max_lines]
 
 

@@ -37,18 +37,37 @@ WEIGHTS = {
 }
 PASS_THRESHOLD = 7.5
 HARD_PRODUCT_CONSISTENCY = 8.0
+HARD_SLOT_COMPLIANCE = 8.0
 
-SYSTEM_PROMPT = """You are a senior Russian e-commerce art director reviewing AI-generated product listing images for the Ozon marketplace.
+# Slots where hands/fingers/human body parts in frame are an automatic violation.
+# Per silk-life user hard-requirements (v3_spec/b2_v4_pipeline_gap.md, b3_slot_question_map.yaml):
+# only unboxing-scene is allowed to depict a hand interacting with the product.
+HANDS_FORBIDDEN_SLOTS = {
+    "size-spec",
+    "material-macro",
+    "product-callouts",
+    "steps-123",
+    "structure-steps",
+    "hero-product",
+    "angle-feature",
+    "scene-grid",
+    "before-after-result",
+    "quantity-pack",
+    "trust-closure",
+}
+
+BASE_SYSTEM_PROMPT = """You are a senior Russian e-commerce art director reviewing AI-generated product listing images for the Ozon marketplace.
 
 You will receive 2 images:
   Image 1: REFERENCE — the actual product photo (the AI was supposed to keep this product's body intact).
   Image 2: GENERATED — what the AI produced.
 
-Score the GENERATED image on 4 dimensions (each 0-10 integer):
+Score the GENERATED image on 5 dimensions (each 0-10 integer):
   product_consistency: Is the product body in the generated image the SAME product as the reference (same shape, color, material, key features)? Different background/text overlay/composition is fine, but the product itself must match. 10 = identical product. 0 = completely different product.
   cyrillic_render: Is the Russian/Cyrillic text rendered clearly with no missing letters, no Latin substitutions, no garbled characters? 10 = perfect. 0 = unreadable.
   visual_hierarchy: Are the title / number badge / sub-text in clear 3-tier hierarchy? Can a buyer scan and understand the offer in 1 second? 10 = excellent. 0 = chaotic.
   ctr_risk: How likely is this image to FAIL on Ozon CTR (bad fonts, cluttered layout, dirty colors, off-brand)? Score INVERSE: 10 = no risk (looks professional). 0 = will tank.
+  slot_compliance: Does the image obey the slot-specific hard rules listed below? Read them carefully. 10 = full obedience. 0 = clear violation. Be strict — borderline cases score ≤6.
 
 List specific issues that the next regeneration should AVOID (1-line each, max 5 issues).
 
@@ -58,8 +77,46 @@ Reply ONLY in valid JSON, no markdown:
   "cyrillic_render": <int>,
   "visual_hierarchy": <int>,
   "ctr_risk": <int>,
+  "slot_compliance": <int>,
   "issues": ["issue 1", "issue 2", ...]
 }"""
+
+
+def slot_compliance_addendum(slot_id: str) -> str:
+    """Slot-specific hard rules appended to the base system prompt.
+
+    These mirror the per-slot HARD constraints in art_director_contract.py
+    (office_craft_slot_generation_requirements) so the critic and the
+    generator agree on what counts as a violation.
+    """
+    rules: List[str] = []
+    if slot_id in HANDS_FORBIDDEN_SLOTS:
+        rules.append(
+            "HANDS GATE: Any visible hand, finger, fingernail, wrist, arm, or other human body "
+            "part in this slot is a hard violation. Score slot_compliance ≤4 if even a partial "
+            "fingertip is visible."
+        )
+    if slot_id == "size-spec":
+        rules.append(
+            "SIZE-SPEC GATE: Background must be clean (white / light grey / subtle ruler or "
+            "plain cutting mat only). Lifestyle props, hands, decorative scenes are violations."
+        )
+    if slot_id in {"material-macro", "material-quality"}:
+        rules.append(
+            "MATERIAL GATE: A blade macro close-up showing segmented blade edge or metal grain "
+            "must dominate the frame. A wide handheld scene with the knife as a small subject "
+            "is a violation regardless of how pretty it looks."
+        )
+    if slot_id in {"product-callouts", "structure-steps"}:
+        rules.append(
+            "STRUCTURE GATE: The complete product must be visible without occlusion or cropping, "
+            "so callout arrows can attach to structural points (slider ribs, blade segments, "
+            "end cap, body)."
+        )
+    if not rules:
+        return ""
+    bullets = "\n".join(f"  • {r}" for r in rules)
+    return f"\n\nSLOT-SPECIFIC HARD RULES for slot='{slot_id}':\n{bullets}"
 
 
 def load_api_key(key_file: Path = DEFAULT_KEY_FILE) -> str:
@@ -85,10 +142,11 @@ def review(api_key: str, generated_png: Path, reference_img: Path, slot_id: str)
         "Image 1 = REFERENCE product photo. Image 2 = GENERATED listing image. Score per system prompt."
     )
 
+    system_prompt = BASE_SYSTEM_PROMPT + slot_compliance_addendum(slot_id)
     body = {
         "model": CRITIC_MODEL,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {
                 "role": "user",
                 "content": [
@@ -146,11 +204,15 @@ def review(api_key: str, generated_png: Path, reference_img: Path, slot_id: str)
             raise SystemExit(f"❌ Critic 输出非 JSON: {content[:300]}")
 
     scores = {k: int(scored.get(k, 0)) for k in WEIGHTS}
+    # slot_compliance is an additional hard gate, not part of the weighted score.
+    slot_compliance = int(scored.get("slot_compliance", 10))
     weighted = sum(scores[k] * w for k, w in WEIGHTS.items())
     passed = (
         weighted >= PASS_THRESHOLD
         and scores["product_consistency"] >= HARD_PRODUCT_CONSISTENCY
+        and slot_compliance >= HARD_SLOT_COMPLIANCE
     )
+    scores["slot_compliance"] = slot_compliance
     return {
         "scores": scores,
         "weighted": round(weighted, 2),
@@ -174,7 +236,8 @@ def main() -> None:
     if args.out:
         Path(args.out).write_text(out, encoding="utf-8")
     print(out)
-    print(f"\n→ {'✅ PASSED' if result['passed'] else '❌ FAILED'} (weighted={result['weighted']}, pc={result['scores']['product_consistency']})")
+    sc = result["scores"].get("slot_compliance", 10)
+    print(f"\n→ {'✅ PASSED' if result['passed'] else '❌ FAILED'} (weighted={result['weighted']}, pc={result['scores']['product_consistency']}, slot_compliance={sc})")
 
 
 if __name__ == "__main__":

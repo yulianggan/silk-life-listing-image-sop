@@ -845,7 +845,9 @@ def office_craft_slot_generation_requirements(slot_id: str) -> str:
         )
     if slot_id == "size-spec":
         return (
-            "Size-spec requirement: clean light technical product image, no hand, no lifestyle props except a subtle ruler/cutting mat. "
+            "Size-spec HARD requirement: clean light technical product image. "
+            "ABSOLUTELY NO HANDS, NO FINGERS, NO HUMAN BODY PARTS. ABSOLUTELY NO LIFESTYLE PROPS. "
+            "Allowed accessories: only a subtle ruler or plain cutting mat as dimensional reference. "
             "Show the full black utility knife clearly with enough white space for programmatic dimension labels: 9 mm blade, 130 mm length, 13 mm width. "
             "Do not draw measurement text, arrows, rulers with fake labels, or Cyrillic in the image model; overlay_text.py will draw all dimensions. "
         )
@@ -862,20 +864,23 @@ def office_craft_slot_generation_requirements(slot_id: str) -> str:
         )
     if slot_id == "material-macro":
         return (
-            "Material-macro requirement: focus on blade and steel evidence, not a generic hand scene. "
-            "Use a blade macro close-up showing segmented blade lines and metal cutting edge, with a smaller full product identity view if needed. "
-            "Do not let the hand become the subject. "
+            "Material-macro HARD requirement: blade macro close-up is mandatory — show segmented blade edge and metal grain at extreme close range. "
+            "ABSOLUTELY NO HANDS, NO FINGERS, NO HUMAN BODY PARTS in frame. "
+            "The blade and steel are the subject, not the holding context. "
+            "A smaller full product identity view may appear in a corner inset, but the macro must dominate. "
         )
     if slot_id == "product-callouts":
         return (
-            "Product-callouts requirement: large clean front/diagonal product on a light technical background. "
-            "Keep slider ribs, segmented blade, end cap notch, and slim black body clearly visible for overlay callout arrows. "
-            "Avoid hands and busy props. "
+            "Product-callouts HARD requirement: large clean front/diagonal product on a light technical background. The whole product must be fully visible — no cropping, no occlusion. "
+            "ABSOLUTELY NO HANDS, NO FINGERS, NO HUMAN BODY PARTS, NO BUSY PROPS. "
+            "Keep slider ribs, segmented blade, end cap notch, and slim black body clearly visible — these structural points anchor 3-4 callout arrows that overlay_text.py will draw. "
+            "Leave clear background space around the product perimeter for callout label boxes. "
         )
     if slot_id == "steps-123":
         return (
-            "Steps requirement: three simple understandable panels: extend the blade, cut along a line, retract/safely finish. "
-            "Each panel should show one action with the same knife identity. Keep the sequence obvious without relying on text. "
+            "Steps HARD requirement: three simple panels showing the knife's own action sequence: blade extending out of the body, blade meeting paper for a cut, blade retracting back. "
+            "Each panel shows the SAME knife from a clean angle — no hand, no fingers, no human body parts. The product itself is the protagonist of each step. "
+            "Keep the sequence obvious through the knife's mechanism, not through a person performing the action. "
         )
     if slot_id in {"ergo-handhold", "unboxing-scene", "repair-home-scene"}:
         if slot_id == "unboxing-scene":
