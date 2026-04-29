@@ -28,10 +28,15 @@ CODEX_BACKEND_DIR = Path.home() / ".config/opencode/skill/ozon-listing-image/scr
 if CODEX_BACKEND_DIR.exists() and str(CODEX_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(CODEX_BACKEND_DIR))
 
+# image_backend_router fans out across gpt-image-2 (primary) → codex CLI → jiekou.
+# Override priority via env IMAGE_BACKEND_ORDER="gptimage,codex,jiekou".
 try:
-    import codex_backend  # type: ignore  # noqa: E402
-except Exception:  # pragma: no cover - optional local backend
-    codex_backend = None
+    import image_backend_router as codex_backend  # type: ignore  # noqa: E402
+except Exception:  # pragma: no cover - fall back to bare codex_backend if router missing
+    try:
+        import codex_backend  # type: ignore  # noqa: E402
+    except Exception:
+        codex_backend = None
 
 
 def load_jobs(path: Path) -> List[Dict[str, Any]]:
