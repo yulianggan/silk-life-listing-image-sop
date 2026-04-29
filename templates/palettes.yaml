@@ -49,6 +49,19 @@ palettes:
       product_finish: [metallic-shiny]
       target_user_warmth: [masculine-rugged, neutral-pro]
 
+  office-craft:
+    palette_name: "office-craft"
+    palette_bg_main: "clean warm white #F7F7F3"
+    palette_bg_accent: "soft sage green #B9DCA5 with pale craft-paper tones"
+    palette_text_main: "deep navy #1F2D4A"
+    palette_text_sub: "charcoal grey #4A4A4A"
+    palette_pill_color: "soft sage green #B9DCA5"
+    palette_check_color: "fresh green #6CA33F"
+    palette_style_descriptor: "office-craft aesthetic — bright stationery desk, pastel paper, ruler/tape/cutting mat props, calm precise mood, no aggressive sharp-tool styling"
+    matches:
+      product_finish: [matte-textured, matte-soft]
+      target_user_warmth: [neutral-pro]
+
 # 派生规则（slot_planner.py 调用）
 #
 # 输入：
@@ -56,4 +69,4 @@ palettes:
 #   spec.target_user_warmth (warm-feminine / masculine-rugged / neutral-pro)
 #
 # 算法：每 palette 对每个轴 +1 分，最高分胜出；并列时按 default_priority 决定
-default_priority: [warm-luxury, clean-minimal, industrial-burst]
+default_priority: [office-craft, warm-luxury, clean-minimal, industrial-burst]

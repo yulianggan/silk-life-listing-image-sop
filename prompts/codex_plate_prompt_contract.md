@@ -1,4 +1,4 @@
-# Codex Plate Prompt Contract v3
+# Codex Plate Prompt Contract v4
 
 Codex/image generation must receive only the `codex_plate_prompt` from `ArtDirectorContract`, plus the `reference_images` listed in the same job.
 
@@ -55,3 +55,20 @@ do not change package or count
 ```
 
 After Codex returns the no-text plate, run `overlay_text.py`. Never ask Codex to draw the final title or the white/green text cards.
+
+For `office-craft` cutting-tool `scene-grid` jobs, the no-text plate must be a real 2x2 use-case grid: each quadrant contains the same utility knife as a separate visible product instance, and each quadrant shows its own safe stationery task. A single knife spanning the grid is a failed plate.
+
+For `office-craft` cutting-tool jobs, keep the output closer to ecommerce evidence than lifestyle poster:
+main product and specs first, then size, 30° angle, SK2 blade macro, structure callouts, simple steps, 2x2 uses, and unboxing. Avoid excessive plants, journaling props, and repeated generic hand scenes. For unboxing, the blade tip must touch the parcel seam or tape line.
+
+Preferred execution command:
+
+```bash
+python3 scripts/codex_job_runner.py \
+  --jobs output/<category>/codex_jobs.jsonl \
+  --contract output/<category>/art_director_contract.json \
+  --out-dir output/<category> \
+  --slots all \
+  --max-workers 1 \
+  --critic
+```

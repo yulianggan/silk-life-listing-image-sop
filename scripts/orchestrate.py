@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""端到端编排：类目目录 → 8 张 listing 图 + 校验报告.
+"""Legacy 端到端编排：类目目录 → 8 张 listing 图 + 校验报告.
+
+正式出图请使用 one_click_ru_listing.py + codex_job_runner.py。
+本文件保留用于旧结果排查；它依赖模型直出文字/卡片，容易产生俄文乱码和误报通过。
 
 [1] parse_input.scan_category()    解析 xlsx + 参考图分桶
 [2] normalize.to_standard_sku()    GPT-5.4-mini 视觉反推 product_desc_en

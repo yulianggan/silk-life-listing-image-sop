@@ -1,12 +1,33 @@
 # 丝绸生活 Designer Delta Bank
 # 从用户上传的 6 组“沟通图片 → 美工图”样例中蒸馏。
 # 用途：Claude/Cloud Code 先读本文件生成 ArtDirectorContract，再让 Codex 生成无字底图，最后脚本叠俄文。
-version: 2026-04-28-distilled-v2
+version: 2026-04-28-distilled-v3
 
 training_summary:
-  uploaded_zip_count_observed: 6
-  note: "本次会话实际收到 6 个 zip；用户口头说 7 个，缺失的一组可以后续补充再蒸馏。"
+  uploaded_zip_count_observed: 7
+  note: "已补充用户本地目录中的冰箱除味剂案例；美工刀案例按当前美工成品修正为办公/手工风。"
   cases:
+    - id: fridge_odor_absorber
+      source_dirs: "冰箱除味剂/沟通图片 -> 冰箱除味剂/美工图片"
+      communication_images: 24
+      designer_images: 11
+      designer_canvas: "1200x1600 with a few later variants"
+      category_mood: "明亮厨房、白绿、天然清新、家居收纳"
+      sequence:
+        - "主图：厨房蔬果场景 + 白色除味盒 + 绿色无香/时长角标"
+        - "尺寸图：白底产品大图 + 5/8/2.3cm 尺寸箭头 + 三个适用小场景"
+        - "前后对比：腐烂/新鲜水果对比，表达延长保鲜"
+        - "适配范围：厨房、储藏室、鞋柜、宠物、汽车、衣柜 6 宫格"
+        - "优势图：绿色清新背景 + 5 个圆形 icon"
+        - "材质图：纳米晶体/ABS/吸附场景的结构说明"
+        - "再生图：阳光充电 3-5 小时、2-3 个月循环"
+        - "冰箱人物场景：冰箱内部视角 + 产品在食物前方"
+      distilled_moves:
+        - "产品是白色通风盒，必须保持栅格、圆角矩形体和黑色吸附层可见。"
+        - "清新感来自真实厨房/蔬果/冰箱/阳光，不靠大量文字。"
+        - "绿色只做信任和环保提示，主体背景保持白和木质，避免整张图发绿。"
+        - "效果表达用保鲜、除味、再生周期，不做无法证明的强医疗/杀菌承诺。"
+
     - id: transparent_heel_gel_inserts
       source_zip: "归档2.zip"
       communication_images: 33
@@ -96,19 +117,24 @@ training_summary:
       communication_images: 23
       designer_images: 10
       designer_canvas: "900x1200 / 1086x1448 variants"
-      category_mood: "技术、黑绿、办公手工"
-      safety_policy: "sharp_tool_human_review"
+      category_mood: "浅色办公手工、深蓝文字、柔和绿角标、纸张/纸箱/切割垫"
       sequence_observed:
-        - "主图：大标题 + 规格角标 + 工具特写"
-        - "场景：纸张、包装、手工材料"
-        - "角度：30°角度说明"
-        - "舒适：握持和轻量"
-        - "材质：钢材说明"
-        - "生活场景：开箱/手工/修理"
-        - "结构：部件替换"
+        - "主图：大产品 + 9mm角标 + 纸张/包装用途一句话"
+        - "尺寸图：9mm / 130mm / 13mm，浅底技术图，不要生活场景"
+        - "角度：30°刀尖靠近切割位置，角度标注贴近刀尖"
+        - "材质：SK2刀片微距 + 清晰金属边缘，不让手部成为主角"
+        - "结构圈注：推钮、分段刀片、尾部开口、细长机身"
+        - "三步使用：推出、沿线切割、收回刀片，每步动作清楚"
+        - "用途网格：壁纸、纸张、手工、包装四宫格；每格都出现同一把美工刀和对应用途动作"
+        - "拆包收口：刀尖落在纸箱封口胶带/缝隙上，产品主体露出 60% 以上"
       distilled_moves:
-        - "本组只用于视觉范式观察：黑绿技术风、场景网格、角度图、材质图。"
-        - "项目默认不要一键生成锋利刀具/刀刃类高转化营销图；应输出 needs_human_review。"
+        - "不要走黑金五星证书风；美工成品更像文具/手工工具，不像危险刀具广告。"
+        - "大标题多为深蓝/灰色、带下划线；绿色用于 9mm、编号、SK2 等轻量强调。"
+        - "每张图只保留一个购买证据：规格、角度、材质、结构、步骤、用途或拆包。"
+        - "用途网格不能只把一张静物背景切成四块，也不能让一把刀跨越多个格子。"
+        - "不要把整套做成手账/植物生活方式海报；工具感来自黑色产品、深蓝标题、切割垫、金属尺、纸箱和胶带。"
+        - "主图先讲 9mm 办公刀和纸张/包装用途；SK2 放到材质图，不要抢首图信息。"
+        - "允许展示刀尖接触纸张/纸箱等正常办公材料；禁止攻击性、危险或夸张锋利场景。"
 
     - id: yellow_foot_deodorant_stickers
       source_zip: "抗菌鞋垫贴纸.zip"
@@ -171,6 +197,10 @@ russian_copy_rules:
     style: "短动词短名词，避免长句"
 
 category_archetypes:
+  fridge_odor_absorber:
+    palette: "white / fresh green / warm kitchen wood"
+    evidence_priority: ["hero_kitchen", "size", "before_after_freshness", "scene_grid", "benefits_icons", "material", "recharge_cycle", "fridge_lifestyle"]
+    must_preserve: ["white vented rectangular case", "black absorbent layer visible through vents", "rounded corners", "compact size"]
   transparent_heel_gel:
     palette: "white / warm grey / muted green"
     evidence_priority: ["hero", "protection", "size", "steps", "reusable", "material", "before_after", "shoe_fit"]
@@ -191,9 +221,11 @@ category_archetypes:
     palette: "black / dark steel / orange accent / white spec page"
     evidence_priority: ["hero", "compatibility", "sealing", "dimension", "material", "install_steps", "fit_grid", "trust"]
     must_preserve: ["brass/gold body", "silver clip", "thread size", "connector opening"]
-  sharp_tool_human_review:
-    policy: "needs_human_review"
-    reason: "锋利刀刃/刀具类不走一键高转化营销自动化；只能做人工审核后的中性图。"
+  office_craft_cutting_tool:
+    palette: "clean white / soft sage green / deep navy / pastel paper"
+    evidence_priority: ["hero", "scene_grid", "angle", "ergonomics", "material", "unboxing", "home_repair", "structure"]
+    must_preserve: ["long narrow black handle", "segmented 9mm blade", "slider ribs", "end cap notch", "30 degree tip"]
+    policy: "neutral office/craft use only; avoid dangerous or aggressive knife marketing"
 
 layout_paradigms:
   hero_spec_badge:

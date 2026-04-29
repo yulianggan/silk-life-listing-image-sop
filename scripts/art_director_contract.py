@@ -22,7 +22,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-CONTRACT_VERSION = "2026-04-28-v3-reference-lock-no-category-gate"
+CONTRACT_VERSION = "2026-04-28-v4-reference-lock-overlay-runner"
 DEFAULT_CANVAS = {
     "ratio": "3:4",
     "preferred": "1200x1600",
@@ -42,6 +42,13 @@ METRIC_RE = re.compile(
 # The pipeline focuses on SKU truth, reference locking, copy correctness, and layout quality.
 
 ARCHETYPES = {
+    "fridge_odor_absorber": {
+        "keywords": ["холодильник", "поглотитель запаха", "нейтрализатор запахов", "осушитель", "активированн", "уголь", "шкаф", "кухн", "冰箱", "除味剂", "活性炭", "吸湿", "除臭"],
+        "palette": "clean white / fresh green / warm kitchen wood / sunlight",
+        "visual_mood": "fresh kitchen, odor neutralizing, natural household care, clean storage",
+        "must_preserve": ["white vented rectangular case", "rounded corners", "black absorbent layer visible through vents", "compact box proportions"],
+        "sequence": ["hero-product", "size-spec", "before-after-result", "scene-grid", "material-macro", "mechanism-ingredients", "recharge-cycle", "lifestyle-human-scene"],
+    },
     "yellow_deodorant_sticker": {
         "keywords": ["стикер", "эколог", "обув", "запах", "дезодо", "odor", "deodor", "鞋垫贴纸", "除味", "柠檬", "消臭"],
         "palette": "sunny yellow / lemon green / clean white",
@@ -79,10 +86,10 @@ ARCHETYPES = {
     },
     "office_craft_cutting_tool": {
         "keywords": ["канцеляр", "канцелярский нож", "лезв", "cutter", "utility knife", "craft knife", "office knife", "美工刀", "裁纸刀", "切割", "刀片", "刀刃"],
-        "palette": "dark graphite / black / red or green technical accent / light spec page",
-        "visual_mood": "precise, compact, office craft, technical",
+        "palette": "office-tool: clean white / deep navy / soft sage green / grey cutting mat / metal ruler / kraft box",
+        "visual_mood": "precise office tool, packaging cutter, controlled sharpness, less decorative stationery",
         "must_preserve": ["long narrow black handle", "segmented steel blade", "slider ribs", "end cap notch", "9mm blade width", "130mm body length", "13mm body width"],
-        "sequence": ["hero-product", "material-macro", "product-callouts", "quantity-pack", "scene-grid", "size-spec", "steps-123", "trust-closure"],
+        "sequence": ["hero-product", "size-spec", "angle-feature", "material-macro", "product-callouts", "steps-123", "scene-grid", "unboxing-scene"],
     },
     "generic_household": {
         "keywords": [],
@@ -157,6 +164,13 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "commercial_intent": "温和展示效果，不夸大。",
         "visual_answer": "产品 + 应用对象/效果卡片 + 时长角标。",
         "title": "ЭФФЕКТ ДО 7 ДНЕЙ",
+    },
+    "recharge-cycle": {
+        "paradigm": "material_macro",
+        "buyer_question": "能否重复使用，怎么恢复吸附能力？",
+        "commercial_intent": "用阳光再生周期说明长期使用价值。",
+        "visual_answer": "阳光窗台/木桌上的产品 + 2 个绿色周期信息卡。",
+        "title": "ДО 2 ЛЕТ ИСПОЛЬЗОВАНИЯ",
     },
     "reusable-waterproof": {
         "paradigm": "material_macro",
@@ -281,8 +295,43 @@ SLOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
         "paradigm": "scene_grid",
         "buyer_question": "适用场景有哪些？",
         "commercial_intent": "扩大适用想象。",
-        "visual_answer": "2x2 场景卡片。",
-        "title": "УНИВЕРСАЛЬНОЕ ПРИМЕНЕНИЕ",
+        "visual_answer": "2x2 独立场景卡片；每格都要有产品参与该用途，标题区压缩，场景面积优先。",
+        "title": "ДЛЯ РАЗНЫХ ЗАДАЧ",
+    },
+    "angle-feature": {
+        "paradigm": "angle_feature",
+        "buyer_question": "刀尖角度为什么适合精细切割？",
+        "commercial_intent": "把 30° 刀尖转成精确、干净、可控的购买理由。",
+        "visual_answer": "刀尖贴近纸张，30° 角度标注必须靠近刀尖，避免孤立标签。",
+        "title": "30° ДЛЯ ТОЧНОГО РЕЗА",
+    },
+    "ergo-handhold": {
+        "paradigm": "lifestyle_human_scene",
+        "buyer_question": "握持是否舒服、是否好控制？",
+        "commercial_intent": "证明细长轻巧和防滑纹理带来日常可控感。",
+        "visual_answer": "真实手部握持裁切纸张，产品清楚可见，背景为柔和办公/手工桌面。",
+        "title": "УДОБСТВО ИСПОЛЬЗОВАНИЯ",
+    },
+    "unboxing-scene": {
+        "paradigm": "lifestyle_human_scene",
+        "buyer_question": "开箱/拆包时是否顺手？",
+        "commercial_intent": "用日常拆包动作建立实用场景，而不是夸张锋利卖点。",
+        "visual_answer": "刀尖必须落在纸箱封口胶带/缝隙上，产品主体露出 60% 以上。",
+        "title": "ДЛЯ РАСПАКОВКИ",
+    },
+    "repair-home-scene": {
+        "paradigm": "lifestyle_human_scene",
+        "buyer_question": "除了办公，还能用于家用修整吗？",
+        "commercial_intent": "扩展到修理、手工、家用小任务的购买场景。",
+        "visual_answer": "明亮家居维修/手工场景，产品用于纸张或薄材料修整，不出现危险动作。",
+        "title": "НЕЗАМЕНИМ В РЕМОНТЕ И БЫТУ",
+    },
+    "structure-steps": {
+        "paradigm": "structure_steps",
+        "buyer_question": "刀片替换和结构是否清楚可靠？",
+        "commercial_intent": "展示滑块、尾盖、分段刀片等结构，降低使用疑虑。",
+        "visual_answer": "三段结构演示：整刀、拆下尾盖/滑块、替换分段刀片。",
+        "title": "ПРОСТАЯ ЗАМЕНА ЛЕЗВИЙ",
     },
 }
 
@@ -321,6 +370,15 @@ def classify_archetype(text: str) -> str:
         if score > best[1]:
             best = (name, score)
     return best[0]
+
+
+def infer_style_profile(sku: Dict[str, Any], archetype: str) -> str:
+    direct = pick_value(sku, ["style_profile", "visual_style", "listing_style"])
+    if direct:
+        return direct
+    if archetype == "office_craft_cutting_tool":
+        return "office-craft"
+    return ""
 
 
 def extract_metrics(text: str) -> List[str]:
@@ -454,6 +512,7 @@ def infer_product_name_ru(sku: Dict[str, Any], archetype: str) -> str:
     if direct:
         return direct[:80]
     defaults = {
+        "fridge_odor_absorber": "ПОГЛОТИТЕЛЬ ЗАПАХА",
         "yellow_deodorant_sticker": "СТИКЕРЫ ДЛЯ ОБУВИ",
         "transparent_heel_gel": "ВКЛАДЫШИ ДЛЯ ОБУВИ",
         "warm_needle_set": "НАБОР ИГЛ",
@@ -474,6 +533,11 @@ def infer_badge(metrics: List[str], text: str, archetype: str) -> str:
             return m
     if archetype == "yellow_deodorant_sticker":
         return "12 шт"
+    if archetype == "fridge_odor_absorber":
+        for m in metrics:
+            if any(unit in m.lower() for unit in ["месяц", "см", "г"]):
+                return m
+        return "без отдушки"
     if archetype == "transparent_heel_gel":
         return "2 шт"
     if archetype == "warm_needle_set":
@@ -543,6 +607,146 @@ def extract_bullets_ru(sku: Dict[str, Any]) -> List[str]:
     return []
 
 
+def office_craft_overlay_plan(slot_id: str, title: str, badge: str, metrics: List[str], dim_facts: List[Dict[str, Any]], sku: Dict[str, Any]) -> Dict[str, Any]:
+    """美工刀电商证据链 overlay：少字、统一层级，避免横线/大字盖住产品。"""
+    base_title = {
+        "hero-product": "КАНЦЕЛЯРСКИЙ НОЖ",
+        "size-spec": "РАЗМЕР И ЛЕЗВИЕ",
+        "angle-feature": "30° ДЛЯ ТОЧНОГО РЕЗА",
+        "material-macro": "СТАЛЬ SK2",
+        "product-callouts": "ОСНОВНЫЕ ОСОБЕННОСТИ",
+        "steps-123": "ПРОСТОЕ ИСПОЛЬЗОВАНИЕ",
+        "scene-grid": "ДЛЯ РАЗНЫХ ЗАДАЧ",
+        "unboxing-scene": "ДЛЯ РАСПАКОВКИ",
+        "ergo-handhold": "УДОБНЫЙ ХВАТ",
+        "repair-home-scene": "Незаменим в\nремонте и быту",
+        "structure-steps": "ПРОСТАЯ ЗАМЕНА ЛЕЗВИЙ",
+    }.get(slot_id, title)
+
+    plan: Dict[str, Any] = {
+        "title": base_title,
+        "title_box": _box(0.060, 0.050, 0.74, 0.130, "transparent_navy"),
+        "subtitle": "",
+        "subtitle_box": _box(0.08, 0.84, 0.84, 0.075, "soft_green_pill"),
+        "badges": [],
+        "labels": [],
+        "dimensions": [],
+        "steps": [],
+        "arrows": [],
+        "icons": [],
+        "style": {
+            "font_family": "DejaVu Sans or Arial with Cyrillic support",
+            "title_weight": "bold",
+            "title_case": "mixed upper/title, designer-style underline",
+            "cards_owned_by": "overlay_text.py",
+            "style_profile": "office-craft",
+        },
+    }
+    plan["title_box"]["align"] = "left"
+    plan["title_box"]["start_size"] = 58
+    plan["title_box"]["max_lines"] = 2
+
+    if slot_id == "hero-product":
+        plan["badges"].append({"text": "9 мм", "box": _box(0.06, 0.245, 0.20, 0.080, "soft_green_pill"), "start_size": 52})
+        plan["subtitle"] = "ДЛЯ БУМАГИ И УПАКОВКИ"
+        plan["subtitle_box"] = _box(0.40, 0.835, 0.52, 0.085, "soft_green_pill")
+        plan["subtitle_box"]["start_size"] = 34
+        plan["subtitle_box"]["max_lines"] = 2
+    elif slot_id == "size-spec":
+        plan["title_box"] = _box(0.060, 0.045, 0.62, 0.080, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 32
+        plan["dimensions"] = [
+            {"text": "130 мм длина", "box": _box(0.12, 0.70, 0.34, 0.060, "soft_green_pill"), "start_size": 26},
+            {"text": "13 мм ширина", "box": _box(0.56, 0.30, 0.34, 0.060, "soft_green_pill"), "start_size": 26},
+            {"text": "9 мм лезвие", "box": _box(0.08, 0.26, 0.30, 0.060, "soft_green_pill"), "start_size": 26},
+        ]
+        plan["arrows"] = [
+            {"from": [0.20, 0.68], "to": [0.73, 0.24], "color": [31, 45, 74, 225], "width": 3},
+            {"from": [0.64, 0.36], "to": [0.72, 0.38], "color": [31, 45, 74, 225], "width": 3},
+            {"from": [0.20, 0.32], "to": [0.16, 0.72], "color": [31, 45, 74, 225], "width": 3},
+        ]
+    elif slot_id == "scene-grid":
+        plan["title_box"] = _box(0.06, 0.030, 0.72, 0.095, "transparent_navy")
+        plan["title_box"]["align"] = "left"
+        plan["title_box"]["start_size"] = 48
+        plan["labels"] = [
+            {"text": "ОБОИ", "box": _box(0.09, 0.455, 0.28, 0.052, "dark_navy_pill"), "start_size": 28},
+            {"text": "БУМАГА", "box": _box(0.61, 0.455, 0.28, 0.052, "dark_navy_pill"), "start_size": 28},
+            {"text": "ТВОРЧЕСТВО", "box": _box(0.075, 0.795, 0.35, 0.052, "dark_navy_pill"), "start_size": 24},
+            {"text": "УПАКОВКА", "box": _box(0.58, 0.795, 0.34, 0.052, "dark_navy_pill"), "start_size": 26},
+        ]
+    elif slot_id == "angle-feature":
+        plan["title_box"] = _box(0.060, 0.045, 0.74, 0.120, "transparent_navy")
+        plan["title_box"]["start_size"] = 50
+        plan["badges"].append({"text": "30°", "box": _box(0.14, 0.58, 0.15, 0.070, "soft_green_pill"), "start_size": 38})
+        plan["labels"] = [
+            {"text": "ТОЧНЫЙ РЕЗ", "box": _box(0.54, 0.80, 0.30, 0.055, "dark_navy_pill"), "start_size": 22},
+        ]
+        plan["arrows"] = [
+            {"from": [0.20, 0.63], "to": [0.14, 0.75], "color": [31, 45, 74, 230], "width": 3},
+        ]
+    elif slot_id == "ergo-handhold":
+        plan["title_box"] = _box(0.08, 0.06, 0.58, 0.105, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 34
+        plan["labels"] = [
+            {"text": "Лёгкость и контроль", "box": _box(0.56, 0.80, 0.36, 0.065, "soft_green_pill"), "start_size": 26},
+        ]
+    elif slot_id == "material-macro":
+        plan["title_box"] = _box(0.06, 0.055, 0.34, 0.080, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 34
+        plan["labels"] = [
+            {"text": "ЧИСТЫЙ И РОВНЫЙ РЕЗ", "box": _box(0.07, 0.155, 0.48, 0.060, "soft_green_pill"), "start_size": 22, "max_lines": 2}
+        ]
+    elif slot_id == "product-callouts":
+        plan["title_box"] = _box(0.055, 0.045, 0.72, 0.080, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 30
+        plan["labels"] = [
+            {"text": "9 мм лезвие", "box": _box(0.06, 0.30, 0.28, 0.058, "soft_green_pill"), "start_size": 22},
+            {"text": "удобный бегунок", "box": _box(0.61, 0.40, 0.31, 0.058, "soft_green_pill"), "start_size": 20},
+            {"text": "сменное лезвие", "box": _box(0.06, 0.71, 0.31, 0.058, "soft_green_pill"), "start_size": 20},
+            {"text": "компактный корпус", "box": _box(0.58, 0.74, 0.33, 0.058, "soft_green_pill"), "start_size": 20},
+        ]
+        plan["arrows"] = [
+            {"from": [0.25, 0.36], "to": [0.20, 0.79], "color": [31, 45, 74, 210], "width": 2},
+            {"from": [0.64, 0.46], "to": [0.53, 0.52], "color": [31, 45, 74, 210], "width": 2},
+            {"from": [0.26, 0.73], "to": [0.30, 0.82], "color": [31, 45, 74, 210], "width": 2},
+            {"from": [0.61, 0.75], "to": [0.53, 0.66], "color": [31, 45, 74, 210], "width": 2},
+        ]
+    elif slot_id == "steps-123":
+        plan["title_box"] = _box(0.055, 0.045, 0.62, 0.080, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 28
+        plan["steps"] = [
+            {"caption": "1", "box": _box(0.08, 0.30, 0.10, 0.065, "green_square"), "start_size": 42},
+            {"caption": "2", "box": _box(0.08, 0.53, 0.10, 0.065, "green_square"), "start_size": 42},
+            {"caption": "3", "box": _box(0.08, 0.76, 0.10, 0.065, "green_square"), "start_size": 42},
+        ]
+        plan["labels"] = [
+            {"text": "выдвиньте лезвие", "box": _box(0.20, 0.30, 0.30, 0.050, "dark_navy_pill"), "start_size": 18},
+            {"text": "режьте по линии", "box": _box(0.20, 0.53, 0.30, 0.050, "dark_navy_pill"), "start_size": 18},
+            {"text": "уберите лезвие", "box": _box(0.20, 0.76, 0.30, 0.050, "dark_navy_pill"), "start_size": 18},
+        ]
+    elif slot_id in {"unboxing-scene", "repair-home-scene"}:
+        plan["title_box"] = _box(0.07, 0.055, 0.56, 0.090, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 36
+        plan["title_box"]["max_lines"] = 2
+        if slot_id == "unboxing-scene":
+            plan["subtitle"] = ""
+    elif slot_id == "structure-steps":
+        plan["title_box"] = _box(0.06, 0.055, 0.86, 0.085, "dark_navy_pill")
+        plan["title_box"]["start_size"] = 34
+        plan["steps"] = [
+            {"caption": "1", "box": _box(0.70, 0.13, 0.11, 0.075, "green_square"), "start_size": 54},
+            {"caption": "2", "box": _box(0.58, 0.35, 0.11, 0.075, "green_square"), "start_size": 54},
+            {"caption": "3", "box": _box(0.80, 0.62, 0.11, 0.075, "green_square"), "start_size": 54},
+        ]
+        plan["subtitle"] = ""
+        plan["arrows"].append({"from": [0.55, 0.28], "to": [0.46, 0.33], "color": [105, 160, 70, 230], "width": 3})
+
+    if isinstance(plan.get("title_box"), dict):
+        plan["title_box"].setdefault("align", "left")
+    return plan
+
+
 def overlay_plan_for_slot(
     slot_id: str,
     title: str,
@@ -550,7 +754,11 @@ def overlay_plan_for_slot(
     metrics: List[str],
     dim_facts: List[Dict[str, Any]],
     sku: Dict[str, Any],
+    style_profile: str = "",
 ) -> Dict[str, Any]:
+    if style_profile == "office-craft":
+        return office_craft_overlay_plan(slot_id, title, badge, metrics, dim_facts, sku)
+
     spec = SLOT_DEFAULTS.get(slot_id, SLOT_DEFAULTS["product-callouts"])
     slot_title = spec.get("title") or title
     if slot_id == "hero-product":
@@ -614,19 +822,103 @@ def overlay_plan_for_slot(
         if bullets:
             plan["labels"].append({"text": bullets[0], "box": _box(0.08, 0.82, 0.84, 0.075, "white_pill")})
 
+    if slot_id == "recharge-cycle":
+        plan["badges"] = [
+            {"text": "2-3 месяца", "box": _box(0.05, 0.42, 0.34, 0.09, "green_badge")},
+            {"text": "3-5 часов под солнцем", "box": _box(0.60, 0.32, 0.34, 0.10, "green_badge")},
+        ]
+
     return plan
+
+
+def office_craft_slot_generation_requirements(slot_id: str) -> str:
+    if slot_id == "scene-grid":
+        return (
+            "Scene-grid hard requirement: create a clean 2x2 grid made of four independent mini-scenes. "
+            "Reserve only the top 10-12% as a smooth light title safe zone; do not waste a large blank header. "
+            "The 2x2 grid must start below that compact header safe zone and occupy most of the canvas. "
+            "The same black 9 mm utility knife must appear clearly once inside EACH quadrant, four visible knife instances total. "
+            "Each quadrant must show a different safe stationery use: top-left trimming wallpaper, top-right cutting paper sheets, "
+            "bottom-left craft paper/detail work, bottom-right opening a taped parcel or cutting packing tape. "
+            "Do not place one oversized knife across the whole grid. Do not make a single background collage sliced by grid lines. "
+            "Keep each knife fully inside its own quadrant with enough blank space near the lower label areas for programmatic Russian labels. "
+        )
+    if slot_id == "size-spec":
+        return (
+            "Size-spec requirement: clean light technical product image, no hand, no lifestyle props except a subtle ruler/cutting mat. "
+            "Show the full black utility knife clearly with enough white space for programmatic dimension labels: 9 mm blade, 130 mm length, 13 mm width. "
+            "Do not draw measurement text, arrows, rulers with fake labels, or Cyrillic in the image model; overlay_text.py will draw all dimensions. "
+        )
+    if slot_id == "hero-product":
+        return (
+            "Hero-product requirement: one large clear product instance, about 65-75% of canvas height, "
+            "sharp black body detail and blade geometry visible, with props secondary. The visual promise is office cutting for paper and packaging, not a soft journaling flat lay. "
+        )
+    if slot_id == "angle-feature":
+        return (
+            "Angle-feature requirement: show the blade tip close to paper with a clean 30 degree precision-cutting setup; "
+            "leave clear room around the tip for an overlay angle badge and arrow. "
+            "Do not draw dashed measurement lines, angle arcs, labels, text, or diagram graphics in the plate; overlay_text.py will add the simple marker. "
+        )
+    if slot_id == "material-macro":
+        return (
+            "Material-macro requirement: focus on blade and steel evidence, not a generic hand scene. "
+            "Use a blade macro close-up showing segmented blade lines and metal cutting edge, with a smaller full product identity view if needed. "
+            "Do not let the hand become the subject. "
+        )
+    if slot_id == "product-callouts":
+        return (
+            "Product-callouts requirement: large clean front/diagonal product on a light technical background. "
+            "Keep slider ribs, segmented blade, end cap notch, and slim black body clearly visible for overlay callout arrows. "
+            "Avoid hands and busy props. "
+        )
+    if slot_id == "steps-123":
+        return (
+            "Steps requirement: three simple understandable panels: extend the blade, cut along a line, retract/safely finish. "
+            "Each panel should show one action with the same knife identity. Keep the sequence obvious without relying on text. "
+        )
+    if slot_id in {"ergo-handhold", "unboxing-scene", "repair-home-scene"}:
+        if slot_id == "unboxing-scene":
+            return (
+                "Unboxing requirement: the blade tip must touch the parcel seam or transparent tape line exactly where the box should be opened. "
+                "Show at least 60% of the black utility knife body, including slider ribs and blade structure. "
+                "Keep the hand natural but secondary to product recognition. "
+            )
+        return (
+            "Human-scene requirement: show a natural safe hand/tool interaction for office, craft, unpacking, or home repair use; "
+            "the knife body must remain recognizable and not be hidden by fingers or props. "
+        )
+    if slot_id == "structure-steps":
+        return (
+            "Structure-steps requirement: show three clear product structure moments with the same knife identity: whole knife, slider/tail cap detail, "
+            "and segmented blade replacement detail; leave empty zones for overlay numbers 1, 2, and 3. "
+        )
+    return ""
 
 
 def build_plate_prompt(archetype: str, slot_id: str, slot: Dict[str, Any], cfg: Dict[str, Any]) -> str:
     geometry = slot.get("layout_plan", {}).get("product_geometry_lock", {})
     ratio = geometry.get("physical_length_to_width_ratio_estimate")
     ratio_sentence = f" Preserve the product's slender length-to-width ratio around {ratio}:1." if ratio else ""
+    style_profile = slot.get("layout_plan", {}).get("style_profile", "")
+    office_craft_sentence = ""
+    if style_profile == "office-craft":
+        office_craft_sentence = (
+            "Use the refined office-tool art direction: clean white/light grey background, deep navy safe zones, "
+            "soft sage-green accents, grey cutting mat, metal ruler, kraft box, paper and tape as purposeful evidence. "
+            "This is an ecommerce detail image, not a decorative lifestyle poster: make the product large, crisp, useful, "
+            "and immediately readable; keep plants and soft stationery props minimal. "
+            "Avoid dark premium weapon-like styling, five-star review badges, "
+            "fake packaging, aggressive sparks, blood, threat, or exaggerated sharpness. "
+            f"{office_craft_slot_generation_requirements(slot_id)}"
+        )
     return (
         "Create a vertical 3:4 full-bleed Russian ecommerce product visual plate. "
         "Use the attached/selected real product reference image(s) as the immutable product anchor. "
         "Do not generate or redraw the product from text memory. "
         "Preserve the same silhouette, length, width, thickness, color, material, package, count, and key structural details."
         f"{ratio_sentence} "
+        f"{office_craft_sentence}"
         "Do NOT render final readable Russian or Cyrillic text. "
         "Do NOT draw placeholder text cards, empty rounded boxes, UI frames, random label outlines, or fake glyphs. "
         "Only leave smooth clean background in overlay safe zones; overlay_text.py will draw all cards and text later. "
@@ -657,6 +949,7 @@ def build_contract(
 
 
     cfg = ARCHETYPES[archetype]
+    style_profile = infer_style_profile(sku, archetype)
     title_ru = infer_product_name_ru(sku, archetype)
     badge = infer_badge(metrics, text, archetype)
     seq = normalize_sequence(archetype, slot_plan, max_slots)
@@ -694,13 +987,14 @@ def build_contract(
             "layout_plan": {
                 "canvas": DEFAULT_CANVAS,
                 "palette": cfg["palette"],
+                "style_profile": style_profile,
                 "product_rendering_mode": "locked_reference_composite",
                 "reference_images": reference_images,
                 "product_geometry_lock": geometry_lock,
                 "background": "full-bleed edge-to-edge commercial background; no side margins",
                 "text_policy": "no final text/cards/placeholders in Codex plate; overlay_text.py draws all cards and text",
             },
-            "overlay_text_plan": overlay_plan_for_slot(slot_id, title_ru, badge, metrics, dim_facts, sku),
+            "overlay_text_plan": overlay_plan_for_slot(slot_id, title_ru, badge, metrics, dim_facts, sku, style_profile=style_profile),
             "negative_prompt": [
                 "no final readable Cyrillic text",
                 "no fake glyphs or garbled letters",
@@ -728,6 +1022,34 @@ def build_contract(
                 "set palette matches category archetype",
             ],
         }
+        if style_profile == "office-craft":
+            slot["negative_prompt"].extend([
+                "no soft journaling poster look",
+                "no excessive plants or decorative paper props",
+                "no title underline crossing the product body",
+                "no model-generated measurement text, arrows, or Cyrillic",
+                "do not hide slider ribs, end cap notch, or segmented blade lines",
+                "keep the same utility knife body details across every image",
+            ])
+        if style_profile == "office-craft" and slot_id == "scene-grid":
+            slot["negative_prompt"].extend([
+                "no single oversized utility knife crossing multiple quadrants",
+                "no one-product-across-grid composition",
+                "no decorative background grid without product in every cell",
+                "each quadrant must contain one visible utility knife instance",
+            ])
+            slot["critic_checks"].extend([
+                "scene-grid has four independent mini-scenes",
+                "the utility knife appears inside every quadrant",
+                "no knife instance spans across quadrant borders",
+            ])
+        if style_profile == "office-craft" and slot_id == "unboxing-scene":
+            slot["critic_checks"].extend([
+                "blade tip touches the box seam or tape line",
+                "at least 60 percent of the product body is visible",
+            ])
+        if style_profile == "office-craft" and slot_id in {"size-spec", "product-callouts", "material-macro"}:
+            slot["critic_checks"].append("visual evidence matches the slot purpose, not a generic hand scene")
         slot["codex_plate_prompt"] = build_plate_prompt(archetype, slot_id, slot, cfg)
         contracts.append(slot)
 
@@ -747,6 +1069,7 @@ def build_contract(
             "canvas": DEFAULT_CANVAS,
             "palette": cfg["palette"],
             "visual_mood": cfg["visual_mood"],
+            "style_profile": style_profile,
             "typography": "programmatic Cyrillic overlay only; overlay script owns cards",
         },
         "sku_facts": sku_facts,

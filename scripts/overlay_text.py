@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -55,16 +56,18 @@ def wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, m
     words = text.split()
     lines: List[str] = []
     cur = ""
-    for word in words:
+    for idx, word in enumerate(words):
         trial = word if not cur else f"{cur} {word}"
         b = draw.textbbox((0, 0), trial, font=font)
         if (b[2] - b[0]) <= max_w or not cur:
             cur = trial
         else:
+            if len(lines) >= max_lines - 1:
+                rest = " ".join(words[idx:])
+                cur = f"{cur} {rest}".strip()
+                break
             lines.append(cur)
             cur = word
-            if len(lines) >= max_lines - 1:
-                break
     if cur and len(lines) < max_lines:
         lines.append(cur)
     return lines[:max_lines]
@@ -162,10 +165,20 @@ def norm_box_to_px(w: int, h: int, box: Any, fallback: Tuple[float, float, float
 
 def style_for(name: str) -> Dict[str, Any]:
     name = (name or "white_card").lower()
+    if name in {"transparent_underlined", "underlined_title"}:
+        return {"bg": None, "fg": (31, 45, 74), "radius": 0, "outline": None, "underline": True}
+    if name in {"transparent_navy", "navy_text"}:
+        return {"bg": None, "fg": (31, 45, 74), "radius": 0, "outline": None}
     if name == "white_pill":
         return {"bg": (255, 255, 255, 238), "fg": (55, 55, 55), "radius": 30, "outline": None}
+    if name in {"green_pill", "soft_green_pill"}:
+        return {"bg": (185, 220, 165, 238), "fg": (55, 55, 55), "radius": 20, "outline": (105, 160, 70, 220)}
     if name == "green_badge":
         return {"bg": (65, 130, 78, 238), "fg": (255, 255, 255), "radius": 18, "outline": None}
+    if name == "green_square":
+        return {"bg": (216, 235, 205, 238), "fg": (105, 160, 45), "radius": 10, "outline": (105, 160, 70, 220)}
+    if name in {"dark_navy_pill", "navy_pill"}:
+        return {"bg": (28, 45, 78, 235), "fg": (255, 255, 255), "radius": 26, "outline": None}
     if name == "dark_card":
         return {"bg": (25, 25, 25, 215), "fg": (255, 255, 255), "radius": 16, "outline": (255, 255, 255, 120)}
     if name == "red_outline":
@@ -204,6 +217,15 @@ def draw_text_box(
     style = style_for(style_name)
     x0, y0, x1, y1 = box
     w, h = im.size
+    margin_x = max(8, int(w * 0.018))
+    margin_y = max(8, int(h * 0.012))
+    x0 = max(margin_x, min(x0, w - margin_x - 1))
+    x1 = min(w - margin_x, max(x1, x0 + 2))
+    y0 = max(margin_y, min(y0, h - margin_y - 1))
+    y1 = min(h - margin_y, max(y1, y0 + 2))
+    if x1 - x0 < 8 or y1 - y0 < 8:
+        return
+    box = (x0, y0, x1, y1)
     radius = max(10, min(style["radius"], int((y1 - y0) * 0.45))) if style["radius"] else 0
     draw_rounded_label(im, box, style["bg"], outline=style.get("outline"), radius=radius)
 
@@ -214,10 +236,12 @@ def draw_text_box(
     max_h = max(10, y1 - y0 - pad_y * 2)
     if start_size is None:
         start_size = max(18, int((y1 - y0) * 0.52))
-    font = fit_font(draw, text, max_w, max_h, start_size=start_size, min_size=14, max_lines=max_lines)
+    font = fit_font(draw, text, max_w, max_h, start_size=start_size, min_size=12, max_lines=max_lines)
     lines = wrap_text(draw, text, font, max_w, max_lines=max_lines)
-    bbox = multiline_bbox(draw, lines, font)
+    spacing = max(6, int(getattr(font, "size", start_size) * 0.14))
+    bbox = multiline_bbox(draw, lines, font, spacing=spacing)
     y = y0 + (y1 - y0 - bbox[3]) // 2
+    last_y = y
     for line in lines:
         b = draw.textbbox((0, 0), line, font=font)
         tw = b[2] - b[0]
@@ -228,7 +252,46 @@ def draw_text_box(
         else:
             x = x0 + (x1 - x0 - tw) // 2
         draw.text((x, y), line, font=font, fill=style["fg"])
-        y += (b[3] - b[1]) + 8
+        actual = draw.textbbox((x, y), line, font=font)
+        last_y = actual[3]
+        y = last_y + spacing
+    if style.get("underline"):
+        uy = min(y1 - 3, last_y + max(12, int(getattr(font, "size", start_size) * 0.35)))
+        draw.line((x0 + pad_x, uy, x1 - pad_x, uy), fill=style["fg"], width=max(2, int((y1 - y0) * 0.025)))
+
+
+def draw_arrow(
+    im: Image.Image,
+    start: Tuple[int, int],
+    end: Tuple[int, int],
+    fill: Tuple[int, int, int, int] = (70, 70, 70, 220),
+    width: int = 3,
+) -> None:
+    draw = ImageDraw.Draw(im)
+    draw.line((*start, *end), fill=fill, width=width)
+    angle = math.atan2(end[1] - start[1], end[0] - start[0])
+    size = max(10, width * 5)
+    points = [
+        end,
+        (
+            int(end[0] - size * math.cos(angle - math.pi / 6)),
+            int(end[1] - size * math.sin(angle - math.pi / 6)),
+        ),
+        (
+            int(end[0] - size * math.cos(angle + math.pi / 6)),
+            int(end[1] - size * math.sin(angle + math.pi / 6)),
+        ),
+    ]
+    draw.polygon(points, fill=fill)
+
+
+def norm_point_to_px(w: int, h: int, point: Any) -> Tuple[int, int]:
+    if not isinstance(point, (list, tuple)) or len(point) != 2:
+        return (0, 0)
+    x, y = float(point[0]), float(point[1])
+    if max(abs(x), abs(y)) <= 1.5:
+        return (int(w * x), int(h * y))
+    return (int(x), int(y))
 
 
 def zone_box(w: int, h: int, zone: str) -> Tuple[int, int, int, int]:
@@ -282,6 +345,44 @@ def _box_from_item(
     return norm_box_to_px(w, h, None, fallback)
 
 
+def _align_from_item(item: Any, default: str = "center") -> str:
+    if isinstance(item, dict):
+        if item.get("align"):
+            return str(item["align"])
+        box = item.get("box")
+        if isinstance(box, dict) and box.get("align"):
+            return str(box["align"])
+    return default
+
+
+def _max_lines_from_item(item: Any, default: int = 2) -> int:
+    if isinstance(item, dict):
+        sources = [item]
+        if isinstance(item.get("box"), dict):
+            sources.append(item["box"])
+        for src in sources:
+            if src.get("max_lines"):
+                try:
+                    return int(src["max_lines"])
+                except (TypeError, ValueError):
+                    return default
+    return default
+
+
+def _start_size_from_item(item: Any, default: int) -> int:
+    if isinstance(item, dict):
+        sources = [item]
+        if isinstance(item.get("box"), dict):
+            sources.append(item["box"])
+        for src in sources:
+            if src.get("start_size"):
+                try:
+                    return int(src["start_size"])
+                except (TypeError, ValueError):
+                    return default
+    return default
+
+
 def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fit_mode: str = "cover", trim_border: bool = True) -> None:
     contract = load_contract(contract_path)
     if contract.get("status") != "ready":
@@ -301,7 +402,13 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
     title_style = "white_pill"
     if isinstance(plan.get("title_box"), dict) and plan["title_box"].get("style"):
         title_style = plan["title_box"]["style"]
-    draw_text_box(im, title, title_box, style_name=title_style, start_size=int(h * 0.060), max_lines=2)
+    draw_text_box(
+        im, title, title_box,
+        style_name=title_style,
+        align=_align_from_item({"box": plan.get("title_box")}, "center"),
+        start_size=_start_size_from_item({"box": plan.get("title_box")}, int(h * 0.052)),
+        max_lines=_max_lines_from_item({"box": plan.get("title_box")}, 2),
+    )
 
     # Badges
     for i, badge in enumerate(plan.get("badges", [])):
@@ -310,7 +417,24 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
             continue
         fallback = (0.06, 0.18 + i * 0.09, 0.25, 0.10)
         box = _box_from_item(badge, w, h, fallback)
-        draw_text_box(im, text, box, style_name=_style_from_item(badge, "green_badge"), start_size=int(h * 0.038), max_lines=1)
+        draw_text_box(
+            im, text, box,
+            style_name=_style_from_item(badge, "green_badge"),
+            align=_align_from_item(badge),
+            start_size=_start_size_from_item(badge, int(h * 0.038)),
+            max_lines=_max_lines_from_item(badge, 1),
+        )
+
+    # Vector arrows and simple measurement pointers
+    for arrow in plan.get("arrows", []):
+        if not isinstance(arrow, dict):
+            continue
+        start = norm_point_to_px(w, h, arrow.get("from") or arrow.get("start"))
+        end = norm_point_to_px(w, h, arrow.get("to") or arrow.get("end"))
+        color = tuple(arrow.get("color", [70, 70, 70, 220]))
+        if len(color) == 3:
+            color = (*color, 220)
+        draw_arrow(im, start, end, fill=color, width=int(arrow.get("width", 3)))
 
     # Dimensions
     for i, dim in enumerate(plan.get("dimensions", [])[:6]):
@@ -319,7 +443,13 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
             continue
         fallback = (0.66, 0.28 + i * 0.08, 0.28, 0.06)
         box = _box_from_item(dim, w, h, fallback)
-        draw_text_box(im, text, box, style_name=_style_from_item(dim, "white_card"), start_size=int(h * 0.026), max_lines=2)
+        draw_text_box(
+            im, text, box,
+            style_name=_style_from_item(dim, "white_card"),
+            align=_align_from_item(dim),
+            start_size=_start_size_from_item(dim, int(h * 0.026)),
+            max_lines=_max_lines_from_item(dim, 2),
+        )
 
     # Steps
     for i, step in enumerate(plan.get("steps", [])[:4]):
@@ -328,7 +458,13 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
             text = f"ШАГ {i + 1}"
         fallback = (0.08 + i * 0.30, 0.82, 0.21, 0.065)
         box = _box_from_item(step, w, h, fallback)
-        draw_text_box(im, text, box, style_name=_style_from_item(step, "green_badge"), start_size=int(h * 0.026), max_lines=1)
+        draw_text_box(
+            im, text, box,
+            style_name=_style_from_item(step, "green_badge"),
+            align=_align_from_item(step),
+            start_size=_start_size_from_item(step, int(h * 0.026)),
+            max_lines=_max_lines_from_item(step, 1),
+        )
 
     # Labels / callouts / bullets
     labels = []
@@ -349,7 +485,29 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
             continue
         fallback = label_defaults[i] if i < len(label_defaults) else (0.08, 0.74, 0.84, 0.060)
         box = _box_from_item(label, w, h, fallback)
-        draw_text_box(im, text, box, style_name=_style_from_item(label, "white_card"), start_size=int(h * 0.023), max_lines=2)
+        draw_text_box(
+            im, text, box,
+            style_name=_style_from_item(label, "white_card"),
+            align=_align_from_item(label),
+            start_size=_start_size_from_item(label, int(h * 0.023)),
+            max_lines=_max_lines_from_item(label, 2),
+        )
+
+    # Icon/cert rows. Icons are simple text glyphs or short labels inside circles.
+    for i, icon in enumerate(plan.get("icons", [])[:8]):
+        text = _text_from_item(icon, keys=("icon", "text", "label"))
+        caption = _text_from_item(icon, keys=("caption", "title"))
+        fallback = (0.08 + i * 0.11, 0.84, 0.075, 0.075)
+        box = _box_from_item(icon, w, h, fallback)
+        draw_text_box(
+            im, text, box,
+            style_name=_style_from_item(icon, "white_card"),
+            start_size=_start_size_from_item(icon, int(h * 0.030)),
+            max_lines=1,
+        )
+        if caption:
+            cap_box = (box[0] - int(w * 0.02), box[3] + 2, box[2] + int(w * 0.02), min(h, box[3] + int(h * 0.055)))
+            draw_text_box(im, caption, cap_box, style_name="transparent", start_size=int(h * 0.016), max_lines=2)
 
     # Subtitle last (normally bottom strip)
     subtitle = plan.get("subtitle", "")
@@ -358,7 +516,13 @@ def render_overlay(plate: Path, contract_path: Path, slot_id: str, out: Path, fi
         subtitle_style = "white_pill"
         if isinstance(plan.get("subtitle_box"), dict) and plan["subtitle_box"].get("style"):
             subtitle_style = plan["subtitle_box"]["style"]
-        draw_text_box(im, subtitle, subtitle_box, style_name=subtitle_style, start_size=int(h * 0.033), max_lines=2)
+        draw_text_box(
+            im, subtitle, subtitle_box,
+            style_name=subtitle_style,
+            align=_align_from_item({"box": plan.get("subtitle_box")}, "center"),
+            start_size=_start_size_from_item({"box": plan.get("subtitle_box")}, int(h * 0.030)),
+            max_lines=_max_lines_from_item({"box": plan.get("subtitle_box")}, 2),
+        )
 
     out.parent.mkdir(parents=True, exist_ok=True)
     im.convert("RGB").save(out, quality=94)

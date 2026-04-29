@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""standard_sku.json → 7 个 SlotSpec（喂给 ozon-listing-image/scripts/edit.py）。
+"""Legacy standard_sku.json → SlotSpec（喂给 ozon-listing-image/scripts/edit.py）。
+
+正式出图请使用 art_director_contract.py 生成 ArtDirectorContract，再用
+codex_job_runner.py 执行 codex_jobs.jsonl。本文件只保留旧链路兼容。
 
 每个 SlotSpec 包含：
 - slot_id: 7 图位之一
@@ -40,6 +43,27 @@ SLOT_BENEFIT_MAP = {
     "package": [9],
     "cert-review": [10, 11],
 }
+
+
+def compact_ru_phrase(text: str, max_len: int = 70) -> str:
+    """图片短文案抽取；不按俄文小数逗号截断。"""
+    text = (text or "").strip()
+    if "=" in text:
+        text = text.split("=", 1)[0].strip()
+    for sep in ["。", ".", ";", "；"]:
+        if sep in text:
+            candidate = text.split(sep, 1)[0].strip()
+            if len(candidate) >= 5:
+                text = candidate
+                break
+    text = " ".join(text.split())
+    if len(text) <= max_len:
+        return text
+    cut = text.rfind(" ", 0, max_len)
+    short = text[: cut if cut > 16 else max_len].strip()
+    if short.count("(") > short.count(")"):
+        short = short.rsplit("(", 1)[0].strip()
+    return short.rstrip(" ,，;；:")
 
 
 def load_palette() -> dict:
@@ -128,12 +152,7 @@ def build_slot_config(slot: str, sku: dict) -> dict:
     # 从原始卖点抽 slot 专用文案（如果有索引就用，没有就用第 0 个 fallback）
     def pick_benefit(idx: int, default: str = "") -> str:
         if idx < len(benefits):
-            b = benefits[idx]
-            # 取第一句（到第一个分隔符）
-            for sep in ["。", ".", "，", ","]:
-                if sep in b:
-                    return b.split(sep)[0].strip()
-            return b[:60]
+            return compact_ru_phrase(benefits[idx])
         return default
 
     palette = load_palette()

@@ -63,12 +63,34 @@ overlay_policy:
   owner: "scripts/overlay_text.py"
   draws:
     - "title pill"
+    - "deep navy transparent title without underline"
+    - "transparent underlined title"
     - "green badges"
+    - "green numbered squares"
+    - "simple arrows and dimension pointers"
     - "dimension cards"
     - "step labels"
     - "callout cards"
+    - "scene grid labels"
+    - "simple icon rows"
   default_fit_mode: "cover"
   no_padding_default: true
+
+office_cutting_tool_extra:
+  product_identity:
+    - "end cap notch must stay consistent"
+    - "slider ribs must stay visible and consistent"
+    - "segmented blade lines must stay consistent"
+    - "body length and slimness must not drift across scenes"
+  ecommerce_evidence_order:
+    - "hero: 9mm office knife for paper and packaging"
+    - "size: 9mm / 130mm / 13mm"
+    - "angle: 30 degree blade tip evidence"
+    - "material: SK2 blade macro"
+    - "callouts: slider, blade, body, end cap"
+    - "steps: extend, cut, retract"
+    - "scene grid: four use cases with product in every cell"
+    - "unboxing: blade tip on parcel seam/tape"
 
 failure_examples:
   product_shortened:

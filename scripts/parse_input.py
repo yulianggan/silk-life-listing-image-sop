@@ -139,6 +139,17 @@ def parse_workbook(xlsx_path: Path) -> dict:
                 if cell.startswith("http") and "ozon.ru" in cell:
                     out["competitor_urls"].append(cell)
 
+    if not any([out["title_ru"], out["benefits_ru"], out["description_ru"], out["search_terms_ru"]]):
+        keyword_rows = []
+        for row in rows:
+            if not row:
+                continue
+            first = str(row[0]).strip() if row[0] is not None else ""
+            if first and first.lower() not in {"关键词", "keywords", "keyword"}:
+                keyword_rows.append(first)
+        if keyword_rows:
+            out["search_terms_ru"] = ";".join(keyword_rows[:80])
+
     return out
 
 
@@ -204,6 +215,16 @@ def parse(category_dir: Path) -> dict:
     if scan["xlsx_path"]:
         try:
             sheet_data = parse_workbook(scan["xlsx_path"])
+            has_listing_fields = bool(
+                sheet_data.get("title_ru")
+                or sheet_data.get("benefits_ru")
+                or sheet_data.get("description_ru")
+            )
+            if not has_listing_fields:
+                issues.append(
+                    f"⚠️  {Path(scan['xlsx_path']).name} 未解析到标题/卖点/描述；"
+                    "可能不是 listing 模板，不能静默使用默认文案"
+                )
         except Exception as e:
             issues.append(f"xlsx 解析失败 ({scan['xlsx_path'].name}): {e}")
     else:

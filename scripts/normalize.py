@@ -47,6 +47,27 @@ CATEGORY_KIND = {
 }
 
 
+def compact_ru_phrase(text: str, max_len: int = 64) -> str:
+    """提取适合图片上的短俄文，避免按小数逗号截断。"""
+    text = (text or "").strip()
+    if "=" in text:
+        text = text.split("=", 1)[0].strip()
+    for sep in ["。", ".", ";", "；"]:
+        if sep in text:
+            candidate = text.split(sep, 1)[0].strip()
+            if len(candidate) >= 5:
+                text = candidate
+                break
+    text = " ".join(text.split())
+    if len(text) <= max_len:
+        return text
+    cut = text.rfind(" ", 0, max_len)
+    short = text[: cut if cut > 16 else max_len].strip()
+    if short.count("(") > short.count(")"):
+        short = short.rsplit("(", 1)[0].strip()
+    return short.rstrip(" ,，;；:")
+
+
 def load_api_key(key_file: Path = DEFAULT_KEY_FILE) -> str:
     env = os.environ.get("JIEKOU_API_KEY")
     if env:
@@ -192,21 +213,13 @@ def to_standard_sku(parsed: dict, api_key: str | None = None, skip_vision: bool 
     # features_ru：取卖点前 3 个的精简版（前 6-10 词）
     features_ru = []
     for b in benefits_ru[:3]:
-        words = b.split()
-        # 提取核心短语：第一个完整子句（到第一个句号/逗号/破折号）
-        for sep in ["。", ".", "，", ",", "—", "–", "—"]:
-            if sep in b:
-                short = b.split(sep)[0].strip()
-                if 5 <= len(short) <= 60:
-                    features_ru.append(short)
-                    break
-        else:
-            features_ru.append(" ".join(words[:8]))
+        features_ru.append(compact_ru_phrase(b))
 
     return {
         "sku": "",  # 留空，由用户补
         "category": category,
         "category_kind": CATEGORY_KIND.get(category, "default"),
+        "style_profile": "office-craft" if category == "美工刀" else "",
         # ozon-listing-image schema 必须字段
         "product_name_ru": product_name_ru,
         "product_subtitle_ru": product_subtitle_ru,

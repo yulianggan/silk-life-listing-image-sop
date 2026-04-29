@@ -35,7 +35,7 @@ def write_jobs(contract: Dict[str, Any], out_dir: Path) -> Path:
         for slot in contract.get("slot_contracts", []):
             refs = slot.get("layout_plan", {}).get("reference_images") or contract.get("reference_images", [])
             job = {
-                "job_version": "2026-04-28-v3-reference-lock",
+                "job_version": "2026-04-28-v4-reference-lock-overlay-runner",
                 "slot_id": slot["slot_id"],
                 "selected_paradigm": slot["selected_paradigm"],
                 "prompt": slot["codex_plate_prompt"],

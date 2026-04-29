@@ -121,10 +121,10 @@ paradigms:
     use_when:
       - "multiple shoe types / materials / vehicles / tasks / users"
     visual_logic:
-      product_role: "appears in each cell or center"
+      product_role: "appears in each cell when the grid shows use/tasks; center product only allowed for explicit compatibility grids"
       product_scale: "20-45% per cell"
       background: "2x2 cards with labels"
-      evidence: "four controlled scenarios; no random stock clutter"
+      evidence: "four controlled scenarios; no random stock clutter; no single product spanning multiple cells; compact title area"
       layout: "top title, grid below, short labels"
     overlay_zones:
       title: {x: 0.06, y: 0.05, w: 0.88, h: 0.10, align: "left"}
@@ -161,13 +161,32 @@ paradigms:
       product_role: "macro proof + product identity"
       product_scale: "40-60%"
       background: "texture/ingredient/workspace"
-      evidence: "macro crop, ingredient props, polished material"
+      evidence: "macro crop, material edge/detail proof, polished material; avoid generic hand scene when material is the claim"
       layout: "title top or left, macro/product center, 2-3 tiny support labels"
     overlay_zones:
       title: {x: 0.06, y: 0.06, w: 0.88, h: 0.12, align: "left"}
       bullets: {x: 0.58, y: 0.20, w: 0.35, h: 0.24, align: "left"}
     text_limits:
       title_words: 5
+      bullets: 3
+
+  angle_feature:
+    intent: "把关键角度/精度参数变成可视证据。"
+    use_when:
+      - "blade angle, bevel, connector angle, precision spec matters"
+    visual_logic:
+      product_role: "working tip / measured edge"
+      product_scale: "45-60%"
+      background: "light workbench, paper/card/craft material"
+      evidence: "angle marker close to the blade tip, one numeric badge, one short benefit label"
+      layout: "title top-left, action close-up center/right, labels away from product"
+    overlay_zones:
+      title: {x: 0.06, y: 0.05, w: 0.70, h: 0.14, align: "left"}
+      angle_badge: {x: 0.48, y: 0.52, w: 0.18, h: 0.08, align: "center"}
+      bullets: {x: 0.07, y: 0.74, w: 0.62, h: 0.22, align: "left"}
+    text_limits:
+      title_words: 5
+      badges: 1
       bullets: 3
 
   quantity_pack:
@@ -205,6 +224,25 @@ paradigms:
     text_limits:
       title_words: 5
       bullets: 3
+
+  structure_steps:
+    intent: "说明可替换/可拆装结构，降低使用疑虑。"
+    use_when:
+      - "product has replaceable blade / slider / cap / components"
+    visual_logic:
+      product_role: "component sequence"
+      product_scale: "multiple cropped views"
+      background: "clean light technical background"
+      evidence: "3 numbered product states, one arrow, no long paragraphs"
+      layout: "product states dominate upper/middle area, title and short caption near bottom"
+    overlay_zones:
+      number_1: {x: 0.70, y: 0.13, w: 0.11, h: 0.08, align: "center"}
+      number_2: {x: 0.58, y: 0.35, w: 0.11, h: 0.08, align: "center"}
+      number_3: {x: 0.80, y: 0.62, w: 0.11, h: 0.08, align: "center"}
+      title: {x: 0.06, y: 0.78, w: 0.86, h: 0.09, align: "left"}
+    text_limits:
+      title_words: 4
+      steps: 3
 
   trust_closure:
     intent: "最后一张收口：可靠、品质、安心。"
