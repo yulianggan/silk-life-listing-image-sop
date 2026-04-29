@@ -1,0 +1,151 @@
+# silk-life v3 mission DAG — for DevFleet plan_project / create_mission
+# 用法 A（半自动）: 把 plan_project_prompt 喂给 plan_project，让 AI 拆 DAG
+# 用法 B（手动控制）: 按 missions[] 顺序 create_mission，root 设 auto_dispatch=true，
+#                     依赖项 depends_on 填上一阶段的 mission_id
+
+project:
+  name: "silk-life-knife-v3-images"
+  description: "8-slot 美工刀蒸馏图 v3，按购买问题映射，无重叠手持场景"
+  workdir: "/Users/mac/ai/silk-life-listing-image-sop"
+
+# ----------------------------------------------------------------------
+# 用法 A：直接给 plan_project 的 prompt
+# ----------------------------------------------------------------------
+plan_project_prompt: |
+  目标: 为丝绸生活 9mm/18mm 黑碳钢 snap-off 美工刀生成 8 张俄罗斯电商 listing 蒸馏图（v3 迭代）。
+  规范文件: v3_spec/slot_matrix.yaml（必读，硬约束在那里）
+  参考图: /Users/mac/Documents/ozns/丝绸生活/美工刀/output_sop_v2_fix/final/slot_hero-product.png（产品主体锁定参考）
+
+  硬约束（必须 100% 满足）:
+  1. 每张图必须回答 slot_matrix.yaml 里对应 slot 的 buying_question
+  2. 产品主体必须与 reference_image 是同一实物（轮廓/配色/比例一致）
+  3. 手部和场景不能遮挡关键结构
+  4. 标题最多 2 行
+  5. 8 张里只有 1 张允许通用手持（slot 07_use_case，开箱割胶带），其他禁手持
+  6. 材质图（02）必须刀片微距
+  7. 尺寸图（03）必须无手、纯白/中性背景
+  8. 结构图（04）完整展示产品 + ≥3 个 callout
+
+  请拆成以下 mission DAG:
+  - 1 个 spec-lock mission（读 slot_matrix.yaml，确认 8 个 slot 规格）
+  - 8 个并行 image-gen mission（每个 slot 一个），depends_on spec-lock
+  - 1 个 QA mission（按 slot_matrix.yaml 的 qa_checklist 验收），depends_on 全部 image-gen
+
+# ----------------------------------------------------------------------
+# 用法 B：手工 create_mission 用的 mission 列表
+# ----------------------------------------------------------------------
+missions:
+  - id: "M0_spec_lock"
+    title: "锁定 v3 slot 规格"
+    depends_on: []
+    auto_dispatch: true
+    prompt: |
+      读取 /Users/mac/ai/silk-life-listing-image-sop/v3_spec/slot_matrix.yaml
+      验证 8 个 slot 的 buying_question/must_have/must_not_have 字段完整。
+      输出: v3_spec/slot_matrix.locked.yaml（原样复制 + 加锁定哈希）
+      不修改任何字段，只做 schema 验证 + 输出锁定副本。
+
+  - id: "M1_hero"
+    title: "出图 01_hero"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "01_hero"
+    prompt: |
+      调用 silk-life-listing-image-sop skill，archetype=hero_product。
+      读取 v3_spec/slot_matrix.locked.yaml 中 slot id=01_hero 的全部字段作为硬约束。
+      参考图主体锁定: product_identity.reference_image。
+      输出: output_v3/slot_01_hero.png
+      验证: 用 slot_matrix.yaml 的 qa_checklist.per_slot 自检，不通过自动重出最多 2 次。
+
+  - id: "M2_blade_macro"
+    title: "出图 02_blade_macro（刀片微距）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "02_blade_macro"
+    prompt: |
+      调用 silk-life skill，archetype=material_macro。
+      读 slot id=02_blade_macro。强制: 刀片占画面 ≥60%，无手，无整刀身。
+      输出: output_v3/slot_02_blade_macro.png
+
+  - id: "M3_dimension"
+    title: "出图 03_dimension（尺寸图，无手）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "03_dimension"
+    prompt: |
+      调用 silk-life skill，archetype=dimension_callout。
+      读 slot id=03_dimension。强制: 纯白/中性背景，毫米刻度，无手，无场景。
+      输出: output_v3/slot_03_dimension.png
+
+  - id: "M4_structure_callout"
+    title: "出图 04_structure_callout（结构爆炸 + callout）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "04_structure_callout"
+    prompt: |
+      调用 silk-life skill，archetype=structure_explosion。
+      读 slot id=04_structure_callout。强制: 整把刀完整入画，≥3 条 callout 引线指向关键结构。
+      输出: output_v3/slot_04_structure_callout.png
+
+  - id: "M5_lock_mechanism"
+    title: "出图 05_lock_mechanism（锁定特写）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "05_lock_mechanism"
+    prompt: |
+      调用 silk-life skill，archetype=lock_close_up。
+      读 slot id=05_lock_mechanism。强制: 锁定区域微距，可见卡齿。
+      输出: output_v3/slot_05_lock_mechanism.png
+
+  - id: "M6_blade_swap"
+    title: "出图 06_blade_swap（折刀片动作）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "06_blade_swap"
+    prompt: |
+      调用 silk-life skill，archetype=blade_swap_action。
+      读 slot id=06_blade_swap。强制: 单一折断动作，手只露指尖。
+      输出: output_v3/slot_06_blade_swap.png
+
+  - id: "M7_use_case"
+    title: "出图 07_use_case（开快递箱割胶带）"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "07_use_case"
+    prompt: |
+      调用 silk-life skill，archetype=specific_use_scene。
+      读 slot id=07_use_case。锁定场景=open_courier_box_tape，禁止其他场景。
+      手仅握刀柄，不能遮刀身。
+      输出: output_v3/slot_07_use_case.png
+
+  - id: "M8_variants"
+    title: "出图 08_variants_lineup"
+    depends_on: ["M0_spec_lock"]
+    auto_dispatch: true
+    slot_id: "08_variants_lineup"
+    prompt: |
+      调用 silk-life skill，archetype=variants_grid。
+      读 slot id=08_variants_lineup。强制: ≥3 变体平铺，纯白底。
+      输出: output_v3/slot_08_variants.png
+
+  - id: "M9_qa"
+    title: "v3 整体 QA 验收"
+    depends_on: ["M1_hero", "M2_blade_macro", "M3_dimension", "M4_structure_callout",
+                 "M5_lock_mechanism", "M6_blade_swap", "M7_use_case", "M8_variants"]
+    auto_dispatch: true
+    prompt: |
+      读取 v3_spec/slot_matrix.yaml 的 qa_checklist。
+      对 output_v3/ 下 8 张 png 逐张跑 per_slot 检查，再跑 global 检查。
+      产出 v3_spec/qa_report.md，每条 PASS/FAIL + 失败原因。
+      失败 slot 标记需要重跑的 mission_id（人工触发，不自动重出）。
+
+# ----------------------------------------------------------------------
+# 并发与失败策略
+# ----------------------------------------------------------------------
+concurrency:
+  max_parallel_agents: 3   # DevFleet 默认上限，8 张图会排队跑
+  retry_per_mission: 2      # image-gen mission 内部 QA 不通过最多重出 2 次
+
+failure_policy:
+  on_image_gen_fail: "保留中间产物到 worktree，不阻塞其他 mission"
+  on_qa_fail: "在 qa_report.md 标记，不阻断 merge；由用户决定是否触发 rerun"

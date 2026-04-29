@@ -1,0 +1,181 @@
+{
+  "analysis_meta": {
+    "total_images": 8,
+    "total_violations": 2,
+    "analysis_date": "2026-04-29",
+    "requirements_checked": 8
+  },
+  "per_image": [
+    {
+      "filename": "slot_hero-product.png",
+      "slot_type": "hero",
+      "purchase_question": "这是什么类型的刀具？",
+      "purchase_answer": "办公用美工刀，用于纸张和包装",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "КАНЦЕЛЯРСКИЙ НОЖ",
+      "hand_holding_scene": false,
+      "specialized_checks": "英雄图，无特殊要求",
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_material-macro.png",
+      "slot_type": "material",
+      "purchase_question": "刀片是什么材质？",
+      "purchase_answer": "SK2钢材，提供频繁且平整的切割",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "СТАЛЬ SK2",
+      "hand_holding_scene": false,
+      "specialized_checks": "有刀片微距细节",
+      "blade_macro_present": true,
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_size-spec.png",
+      "slot_type": "size",
+      "purchase_question": "产品尺寸是多少？",
+      "purchase_answer": "9mm刀片，12mm机身，140mm总长",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "РАЗМЕР И ЛЕЗВИЕ",
+      "hand_holding_scene": false,
+      "specialized_checks": "无手，干净白色背景",
+      "hands_present": false,
+      "clean_background": true,
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_product-callouts.png",
+      "slot_type": "structure",
+      "purchase_question": "主要特性是什么？",
+      "purchase_answer": "9mm刀片、舒适机身、可靠机身、自锁机制",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "ОСНОВНЫЕ ОСОБЕННОСТИ",
+      "hand_holding_scene": false,
+      "specialized_checks": "完整展示产品，有标注箭头",
+      "full_product_shown": true,
+      "callouts_present": true,
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_angle-feature.png",
+      "slot_type": "feature",
+      "purchase_question": "30°角度如何帮助精确切割？",
+      "purchase_answer": "展示30°精确切割能力",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "30° ДЛЯ ТОЧНОГО РЕЗА",
+      "hand_holding_scene": false,
+      "specialized_checks": "特性演示图",
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_scene-grid.png",
+      "slot_type": "scenarios",
+      "purchase_question": "可以用于哪些任务？",
+      "purchase_answer": "胶带、纸张、创意工作、包装4种场景",
+      "product_consistency": "通过",
+      "obstruction_issues": "无",
+      "title_lines": 1,
+      "title_text": "ДЛЯ РАЗНЫХ ЗАДАЧ",
+      "hand_holding_scene": false,
+      "specialized_checks": "多场景展示",
+      "violations": [],
+      "severity": "通过"
+    },
+    {
+      "filename": "slot_steps-123.png",
+      "slot_type": "instructions",
+      "purchase_question": "如何使用这个工具？",
+      "purchase_answer": "3步骤 - 推出刀片、沿线切割、收回刀片",
+      "product_consistency": "通过",
+      "obstruction_issues": "手部是指导的一部分，未遮挡关键结构",
+      "title_lines": 1,
+      "title_text": "ПРОСТОЕ ИСПОЛЬЗОВАНИЕ",
+      "hand_holding_scene": true,
+      "specialized_checks": "教学内容",
+      "violations": [5],
+      "severity": "中等"
+    },
+    {
+      "filename": "slot_unboxing-scene.png",
+      "slot_type": "usage",
+      "purchase_question": "如何用于拆包？",
+      "purchase_answer": "展示切割包装胶带的实际应用",
+      "product_consistency": "通过",
+      "obstruction_issues": "手部持握但未遮挡关键结构",
+      "title_lines": 1,
+      "title_text": "ДЛЯ РАСПАКОВКИ",
+      "hand_holding_scene": true,
+      "specialized_checks": "使用演示",
+      "violations": [5],
+      "severity": "中等"
+    }
+  ],
+  "violations_by_rule": {
+    "rule_1_purchase_question": 0,
+    "rule_2_product_consistency": 0,
+    "rule_3_obstruction": 0,
+    "rule_4_title_length": 0,
+    "rule_5_hand_holding_repetition": 2,
+    "rule_6_material_macro": 0,
+    "rule_7_size_clean": 0,
+    "rule_8_structure_callouts": 0
+  },
+  "most_problematic_images": [
+    {
+      "filename": "slot_steps-123.png",
+      "violations": [5],
+      "reason": "手持场景重复 - 指导性使用"
+    },
+    {
+      "filename": "slot_unboxing-scene.png",
+      "violations": [5],
+      "reason": "手持场景重复 - 拆包演示"
+    }
+  ],
+  "cross_image_patterns": [
+    {
+      "pattern": "手持场景重复模式",
+      "description": "slot_steps-123 和 slot_unboxing-scene 都展示手部操作，违反要求#5",
+      "severity": "中等",
+      "affected_images": ["slot_steps-123.png", "slot_unboxing-scene.png"]
+    },
+    {
+      "pattern": "产品一致性优秀",
+      "description": "所有8张图中的美工刀外观、颜色、设计完全一致",
+      "severity": "优秀",
+      "affected_images": "全部"
+    },
+    {
+      "pattern": "标题简洁性良好",
+      "description": "所有图片标题均为1行俄文，符合最多2行要求",
+      "severity": "优秀",
+      "affected_images": "全部"
+    },
+    {
+      "pattern": "购买问题回答明确",
+      "description": "每张图都清晰回答特定购买疑问",
+      "severity": "优秀",
+      "affected_images": "全部"
+    },
+    {
+      "pattern": "专业摄影质量",
+      "description": "技术规格图完全符合专业要求",
+      "severity": "优秀",
+      "affected_images": ["slot_size-spec.png", "slot_material-macro.png", "slot_product-callouts.png"]
+    }
+  ]
+}

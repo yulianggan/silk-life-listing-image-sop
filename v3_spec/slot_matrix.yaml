@@ -1,0 +1,127 @@
+# silk-life v3 slot matrix
+# 产品: 9mm/18mm 黑碳钢 snap-off 美工刀（丝绸生活店铺）
+# 上游约束（用户原话，2026-04-29）:
+#   - 每张图必须回答一个具体购买问题
+#   - 产品主体必须像同一个实物
+#   - 手部和场景不能遮挡关键结构
+#   - 标题短，最多 2 行
+#   - 不要重复做普通手持场景
+#   - 材质图必须有刀片微距
+#   - 尺寸图必须无手、无复杂背景
+#   - 结构图必须完整展示产品并做 callout
+
+product_identity:
+  # 所有 slot 的"主体一致性"参考。出图模型必须把 reference 图当锁定主体。
+  reference_image: "/Users/mac/Documents/ozns/丝绸生活/美工刀/output_sop_v2_fix/final/slot_hero-product.png"
+  description: "9mm 黑碳钢刀片 snap-off 美工刀，金属刀身，黑色滑动按钮，30° 角刀片"
+  must_match: ["刀身轮廓", "刀片颜色（黑碳钢）", "滑块形状/位置", "整体长宽比"]
+
+global_rules:
+  title_max_lines: 2
+  banned_phrases: ["看起来更好", "好看", "美观"]   # 模糊词禁用
+  banned_scenes: ["generic_hand_holding"]         # 不要重复手持
+  hand_allowed_in_slots: ["07_use_case", "06_blade_swap"]  # 仅这两张允许出现手
+  background_complexity:
+    "03_dimension": "pure_white_or_neutral_gradient"
+    "04_structure_callout": "pure_neutral"
+    "default": "minimal"
+
+slots:
+  - id: "01_hero"
+    buying_question: "这把刀长啥样、值不值得我点进来？"
+    image_type: "hero_product"
+    composition: "正面 3/4 角度，全刀身入画，品牌色背景"
+    must_have: ["完整刀身", "logo/品牌标识", "醒目主标题"]
+    must_not_have: ["手", "复杂场景", "切纸/切箱演示"]
+    title_text: "黑碳钢刀片 · 单手快开"
+    title_max_lines: 2
+
+  - id: "02_blade_macro"
+    buying_question: "刀片材质硬不硬、锋利度可信吗？"
+    image_type: "material_macro"
+    composition: "刀刃微距 1:1 ~ 2:1，可见刀刃反光与磨痕，刀片占据画面 60% 以上"
+    must_have: ["刀刃高清微距", "黑碳钢材质纹理", "锋利刃口反光"]
+    must_not_have: ["手", "整把刀身（只要刀片局部）", "环境物体"]
+    callouts: ["黑碳钢", "30° 锐角", "镜面磨刃"]
+    title_text: "黑碳钢刀片 · 微距锋利度"
+    title_max_lines: 2
+
+  - id: "03_dimension"
+    buying_question: "这刀多大？能不能装进我的工具盒/口袋？"
+    image_type: "dimension_callout"
+    composition: "刀身水平摆放，纯白底（或浅灰渐变），加毫米/英寸刻度线，可放硬币/A4 纸尺等标准对比物"
+    must_have: ["毫米刻度", "刀身完整水平展示", "标准对比物（硬币/手指尺寸示意但不入画）"]
+    must_not_have: ["手", "桌面/工作台", "环境光线干扰", "任何场景元素"]
+    callouts: ["刀身长度 mm", "刀片宽度 mm", "厚度 mm"]
+    title_text: "实测尺寸 · 口袋友好"
+    title_max_lines: 2
+
+  - id: "04_structure_callout"
+    buying_question: "这刀都有哪些结构？设计点在哪？"
+    image_type: "structure_explosion"
+    composition: "侧视图，整把刀完整入画，3-5 条 callout 引线指向关键结构，纯中性背景"
+    must_have: ["完整刀身", "callout 引线 ≥3 条", "结构标签清晰可读"]
+    must_not_have: ["手遮挡任何结构", "复杂背景", "动态使用画面"]
+    callouts:
+      - "黑碳钢刀片"
+      - "金属一体刀身"
+      - "锁定滑块"
+      - "导轨防晃"
+      - "尾部挂孔/折断器"
+    title_text: "5 大核心结构"
+    title_max_lines: 1
+
+  - id: "05_lock_mechanism"
+    buying_question: "锁定靠不靠谱？会不会用着用着滑刀？"
+    image_type: "lock_close_up"
+    composition: "锁定区域 2:1 微距，刀片伸出状态下滑块卡死，可见卡齿/锁扣细节"
+    must_have: ["锁定滑块清晰特写", "锁扣咬合细节", "刀片伸出锁定状态"]
+    must_not_have: ["手指完全包裹住锁定区域", "切割动作"]
+    callouts: ["金属卡齿", "防误推", "单手解锁"]
+    title_text: "金属锁齿 · 不滑刀"
+    title_max_lines: 2
+
+  - id: "06_blade_swap"
+    buying_question: "刀片钝了怎么换？麻不麻烦？"
+    image_type: "blade_swap_action"
+    composition: "用尾部折断器折断一节刀片，单一动作，纯净背景，手只露指尖、不遮主体"
+    must_have: ["分段刀片清晰", "折断动作瞬间", "尾部折断槽特写"]
+    must_not_have: ["全屏手掌", "复杂场景", "其他工具入画"]
+    callouts: ["免工具换刃", "13 段刀片"]
+    title_text: "尾部折断 · 免工具换刃"
+    title_max_lines: 2
+
+  - id: "07_use_case"
+    buying_question: "实际用起来效果怎么样？（一个具体场景）"
+    image_type: "specific_use_scene"
+    scene_lock: "open_courier_box_tape"   # 开快递箱割胶带，唯一允许场景
+    composition: "俯视/45° 角，刀片正在切快递箱封口胶带，刀身完整可见，手仅握刀柄，不遮刀身"
+    must_have: ["瓦楞纸箱+封口胶带", "刀片切割动作", "完整刀身可见"]
+    must_not_have: ["手指/手掌覆盖刀身或刀片", "其他工具入画", "切水果/切布等不相关场景"]
+    title_text: "开箱割胶带 · 一刀到位"
+    title_max_lines: 2
+    notes: "唯一允许出现手的使用场景。其他 slot 不再做手持。"
+
+  - id: "08_variants_lineup"
+    buying_question: "有哪些规格/颜色可选？"
+    image_type: "variants_grid"
+    composition: "同一刀的多色或多规格（9mm / 18mm）平铺俯视，纯白底"
+    must_have: ["≥3 个变体", "色彩/规格差异明显", "平铺整齐"]
+    must_not_have: ["手", "场景", "动态使用"]
+    callouts: ["9mm", "18mm", "黑/银/红"]
+    title_text: "多规格可选"
+    title_max_lines: 1
+
+# QA 验收清单（DevFleet QA mission 用）
+qa_checklist:
+  per_slot:
+    - "产品主体与 reference_image 是否同一实物？（轮廓/比例/配色一致）"
+    - "标题是否 ≤ 2 行？"
+    - "是否回答了 buying_question？"
+    - "must_have 全部满足？"
+    - "must_not_have 没有一项出现？"
+  global:
+    - "8 张图整体看产品是否同一把？"
+    - "是否还有 ≥2 张通用手持场景？（必须 ≤1：仅 07_use_case）"
+    - "尺寸图是否真的无手、无复杂背景？"
+    - "结构图是否完整展示产品并有 ≥3 callout？"

@@ -1,0 +1,218 @@
+# B3 Slot-Question-Evidence Mapping Specification
+# 8-slot matrix for silk-life v4+ SOP - each slot answers a specific buyer question
+# Designed to eliminate hand-holding scene repetition (B0 main violation)
+# Programmatically checkable criteria (addressing B2 pipeline gaps)
+
+slots:
+  - slot_id: hero-primary
+    buyer_question_ru: "Что это за продукт и для чего он нужен?"
+    buyer_question_zh: "这是什么产品，用来做什么？"
+    evidence_type: identification
+    shot_grammar: "Studio hero shot, product centered 55-65% canvas, soft upper-left lighting"
+    forbidden:
+      hand_in_frame: true
+      lifestyle_scene: true
+      title_lines_max: 2
+    required:
+      clean_background: true
+      product_dominance: true
+      brand_elements: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.3]  # x,y,w,h ratios for text overlay
+    pass_criteria:
+      - "no_hands_visible: Product shot without any human skin/fingers in frame"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+      - "product_canvas_ratio >= 0.55 AND <= 0.65: Product occupies 55-65% of canvas"
+      - "background_clean: Studio background without complex props/scenes"
+
+  - slot_id: size-reference
+    buyer_question_ru: "Какого размера этот инструмент?"
+    buyer_question_zh: "这个工具有多大？"
+    evidence_type: size
+    shot_grammar: "Clean size reference shot with measurement context, no hands, neutral background"
+    forbidden:
+      hand_in_frame: true
+      lifestyle_scene: true
+      complex_background: true
+      title_lines_max: 2
+    required:
+      clean_background: true
+      size_context: true
+      measurement_reference: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.25]
+    pass_criteria:
+      - "no_hands_visible: No human skin/fingers anywhere in frame"
+      - "clean_background: Plain or minimal gradient background only"
+      - "measurement_context_present: Ruler, coins, or standard objects for scale"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+  - slot_id: structure-callouts
+    buyer_question_ru: "Как устроен и из чего состоит?"
+    buyer_question_zh: "这个产品是如何构造的，由什么组成？"
+    evidence_type: structure
+    shot_grammar: "Complete product view with technical callouts pointing to key components"
+    forbidden:
+      partial_product_view: true
+      title_lines_max: 2
+    required:
+      callout: true
+      complete_product_visible: true
+      technical_annotation: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.25]
+    pass_criteria:
+      - "callout_present: Visible arrows/lines pointing to product features with labels"
+      - "complete_product: Entire product visible, not cropped or partially obscured"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+      - "technical_focus: Annotated components clearly visible and labeled"
+
+  - slot_id: material-macro
+    buyer_question_ru: "Какое качество лезвия и материалов?"
+    buyer_question_zh: "刀片和材料的质量如何？"
+    evidence_type: material
+    shot_grammar: "Extreme close-up macro shot of blade edge and material texture details"
+    forbidden:
+      distant_shot: true
+      title_lines_max: 2
+    required:
+      blade_macro: true
+      material_texture_visible: true
+      high_detail: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.75, 0.8, 0.2]
+    pass_criteria:
+      - "blade_macro_present: Extreme close-up showing blade edge detail and sharpness"
+      - "material_texture: Surface texture/grain of materials clearly visible"
+      - "high_frequency_detail: Fine details visible indicating macro photography"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+  - slot_id: packaging-contents
+    buyer_question_ru: "Что входит в комплект поставки?"
+    buyer_question_zh: "包装里都包含什么？"
+    evidence_type: packaging
+    shot_grammar: "Unboxing layout showing all package contents organized clearly"
+    forbidden:
+      messy_layout: true
+      title_lines_max: 2
+    required:
+      complete_contents: true
+      organized_layout: true
+      package_verification: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.3]
+    pass_criteria:
+      - "complete_contents_visible: All included items laid out and visible"
+      - "organized_arrangement: Items arranged in logical grid/sequence"
+      - "package_context: Box/packaging visible to confirm source"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+  - slot_id: use-proof-action
+    buyer_question_ru: "Действительно ли он режет как заявлено?"
+    buyer_question_zh: "它真的能像宣传的那样切割吗？"
+    evidence_type: use_proof
+    shot_grammar: "Real cutting action demonstration with visible results, hands allowed but not blocking key structure"
+    forbidden:
+      hands_block_structure: true
+      staged_fake_action: true
+      title_lines_max: 2
+    required:
+      actual_cutting: true
+      visible_results: true
+      hand_positioning_clear: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.25]
+    pass_criteria:
+      - "cutting_action_visible: Product actively cutting through material"
+      - "hands_not_blocking: Hands present but not obscuring product structure/blade"
+      - "cut_results_shown: Clean cut lines or separated materials visible"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+  - slot_id: safety-certification
+    buyer_question_ru: "Безопасен ли в использовании?"
+    buyer_question_zh: "使用时安全吗？"
+    evidence_type: safety
+    shot_grammar: "Safety features close-up with protective elements highlighted"
+    forbidden:
+      unsafe_demonstration: true
+      title_lines_max: 2
+    required:
+      safety_features_visible: true
+      protective_elements: true
+      responsible_messaging: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.3]
+    pass_criteria:
+      - "safety_features_highlighted: Lock mechanisms, guards, or protective elements visible"
+      - "no_unsafe_demonstration: No dangerous handling or exposed blade scenarios"
+      - "responsible_context: Safe handling position and context"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+  - slot_id: angle-variant
+    buyer_question_ru: "Как выглядит с других ракурсов?"
+    buyer_question_zh: "从其他角度看起来如何？"
+    evidence_type: identification
+    shot_grammar: "Alternative angle hero shot showing different product perspective"
+    forbidden:
+      duplicate_angle: true
+      hand_in_frame: true
+      title_lines_max: 2
+    required:
+      different_perspective: true
+      product_clarity: true
+      complementary_view: true
+    composition:
+      aspect_ratio: "3:4"
+      full_bleed: true
+      safe_text_box: [0.1, 0.05, 0.8, 0.25]
+    pass_criteria:
+      - "different_angle: Clearly different perspective from hero-primary slot"
+      - "no_hands_visible: Clean product shot without human elements"
+      - "complementary_information: Shows product aspects not visible in primary hero"
+      - "title_lines_count <= 2: Text overlay must not exceed 2 lines"
+
+# Slot Distribution Analysis
+slot_distribution:
+  by_evidence_type:
+    identification: 2  # hero-primary, angle-variant
+    size: 1           # size-reference
+    structure: 1      # structure-callouts
+    material: 1       # material-macro
+    packaging: 1      # packaging-contents
+    use_proof: 1      # use-proof-action
+    safety: 1         # safety-certification
+
+  by_hand_presence:
+    hands_forbidden: 7    # All except use-proof-action
+    hands_allowed: 1      # use-proof-action only (but cannot block structure)
+    ordinary_lifestyle_scenes: 0  # ZERO to solve B0 violation
+
+  by_complexity:
+    simple_studio_shots: 3     # hero-primary, size-reference, angle-variant
+    technical_evidence: 3      # structure-callouts, material-macro, safety-certification
+    action_demonstration: 2    # packaging-contents, use-proof-action
+
+# Constraint Mapping to User's 8 Hard Requirements
+constraint_mapping:
+  req_1_specific_question: "HARD-ENFORCED - Each slot binds to unique buyer_question_ru/zh"
+  req_2_product_consistency: "INHERITED - Reference-locked generation ensures product matching"
+  req_3_hands_not_blocking: "HARD-ENFORCED - use-proof-action forbids hands_block_structure"
+  req_4_title_max_2_lines: "HARD-ENFORCED - All slots have title_lines_max: 2 + pass_criteria check"
+  req_5_no_repeat_lifestyle: "HARD-ENFORCED - ordinary_lifestyle_scenes: 0 in distribution"
+  req_6_material_blade_macro: "HARD-ENFORCED - material-macro slot requires blade_macro: true"
+  req_7_size_no_hands_clean: "HARD-ENFORCED - size-reference forbids hands + requires clean_background"
+  req_8_structure_complete_callout: "HARD-ENFORCED - structure-callouts requires callout + complete_product_visible"

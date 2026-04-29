@@ -1,0 +1,266 @@
+# 类目侧写配置文件
+# 用于 silk-life pipeline 动态加载类目特定的 slot 配置和约束
+
+version: "1.0"
+created: "2026-04-29"
+base_template: "generic_8_slot"
+
+categories:
+  tools:
+    name: "手工/工具类"
+    keywords: ["нож", "ножницы", "отвёртка", "плоскогубцы", "пила", "美工刀", "剪刀", "改锥", "钳子", "锯子"]
+    evidence_priority: ["material", "safety", "structure", "size"]
+
+    slot_overrides:
+      material_evidence:
+        constraints_add: ["blade_macro_required", "metal_texture_visible"]
+        buyer_question_ru: "Материал лезвия качественный?"
+        validation_functions: ["verify_blade_macro_quality", "detect_metal_surface"]
+
+      safety_certification:
+        constraints_add: ["safety_warnings_visible", "ce_gost_marks"]
+        buyer_question_ru: "Безопасно использовать?"
+        validation_functions: ["detect_safety_markings", "check_warning_labels"]
+
+      use_proof_action:
+        constraints_override: ["hands_allowed", "gloves_preferred", "structure_not_blocked"]
+        buyer_question_ru: "Удобно в руке?"
+
+    forbidden_elements:
+      - complex_background_in_material
+      - children_in_frame
+      - repeated_handhold_angles
+
+    recommended_questions:
+      - "Нож острый?"
+      - "Ручка удобная?"
+      - "Металл качественный?"
+      - "Безопасно для детей?"
+      - "Лезвие сменное?"
+
+  kitchen:
+    name: "厨房/烘焙类"
+    keywords: ["доска", "форма", "коврик", "лопатка", "菜板", "模具", "揉面垫", "硅胶铲"]
+    evidence_priority: ["size", "material", "use_scene", "safety"]
+
+    slot_overrides:
+      size_evidence:
+        constraints_add: ["kitchen_reference_objects", "countertop_scale"]
+        buyer_question_ru: "Размер подходит для кухни?"
+        validation_functions: ["detect_size_reference", "verify_kitchen_scale"]
+
+      material_evidence:
+        constraints_add: ["food_grade_marks", "texture_safe_for_food"]
+        buyer_question_ru: "Материал пищевой?"
+        validation_functions: ["detect_food_grade_certification", "verify_surface_safety"]
+
+      use_proof_action:
+        constraints_override: ["food_props_allowed", "product_remains_primary", "no_raw_meat"]
+        buyer_question_ru: "Легко готовить?"
+
+    forbidden_elements:
+      - food_overpowering_product
+      - raw_meat_display
+      - overly_complex_cooking_scenes
+
+    recommended_questions:
+      - "Размер подходит?"
+      - "Материал пищевой?"
+      - "Легко мыть?"
+      - "Можно в посудомойке?"
+      - "Выдержит температуру?"
+
+  home_storage:
+    name: "家居/收纳类"
+    keywords: ["коробка", "крючок", "вешалка", "корзина", "полка", "收纳盒", "挂钩", "置物架"]
+    evidence_priority: ["size", "capacity", "load_example", "material"]
+
+    slot_overrides:
+      size_evidence:
+        constraints_add: ["precise_dimensions", "reference_comparison"]
+        buyer_question_ru: "Какого размера?"
+        validation_functions: ["verify_dimension_labels", "detect_size_reference"]
+
+      structure_evidence:
+        constraints_add: ["load_bearing_visible", "installation_method"]
+        buyer_question_ru: "Как монтировать?"
+        validation_functions: ["detect_mounting_hardware", "verify_support_structure"]
+
+      use_proof_action:
+        constraints_override: ["capacity_demonstration", "realistic_loading", "organized_display"]
+        buyer_question_ru: "Сколько помещается?"
+
+    core_buyer_concern: "装多少是核心问题"
+
+    forbidden_elements:
+      - messy_loading_demo
+      - excessive_brand_logos_in_contents
+      - unrealistic_weight_demo
+
+    recommended_questions:
+      - "Сколько помещается?"
+      - "Выдержит вес?"
+      - "Легко монтировать?"
+      - "Материал прочный?"
+      - "Подходит размер?"
+
+  cosmetics:
+    name: "化妆/美容类"
+    keywords: ["кисть", "прибор", "тени", "помада", "маска", "化妆刷", "美容仪", "口红", "面膜"]
+    evidence_priority: ["material", "use_process", "safety", "packaging"]
+
+    slot_overrides:
+      material_evidence:
+        constraints_add: ["bristle_macro", "silicone_detail", "texture_quality"]
+        buyer_question_ru: "Материал безопасный?"
+        validation_functions: ["verify_bristle_quality", "detect_skin_safe_materials"]
+        special_note: "刷毛微距等于材质证据核心"
+
+      use_proof_action:
+        constraints_override: ["hands_allowed", "no_face_visible", "partial_demo_only"]
+        buyer_question_ru: "Как использовать?"
+
+      safety_certification:
+        constraints_add: ["hypoallergenic_marks", "skin_test_labels"]
+        buyer_question_ru: "Гипоаллергенно?"
+
+    forbidden_elements:
+      - face_visible_in_demo
+      - exaggerated_beauty_claims
+      - allergy_risk_scenarios
+
+    recommended_questions:
+      - "Материал безопасный?"
+      - "Мягкие щетинки?"
+      - "Легко чистить?"
+      - "Гипоаллергенно?"
+      - "Качество сборки?"
+
+  electronics:
+    name: "小电器类"
+    keywords: ["фен", "бритва", "щётка", "увлажнитель", "зарядка", "吹风机", "剃须刀", "电动牙刷", "充电器"]
+    evidence_priority: ["structure", "safety_certification", "use_scene", "packaging"]
+
+    slot_overrides:
+      structure_evidence:
+        constraints_add: ["interface_callouts", "button_labels", "power_specs"]
+        buyer_question_ru: "Какая мощность?"
+        validation_functions: ["detect_interface_labels", "verify_power_indicators"]
+        special_note: "接口、电源、按钮必须callout"
+
+      safety_certification:
+        constraints_add: ["ce_rohs_marks", "electrical_safety", "voltage_specs"]
+        buyer_question_ru: "Безопасно использовать?"
+        validation_functions: ["detect_electrical_certification", "verify_safety_marks"]
+
+      use_proof_action:
+        constraints_override: ["operation_demo", "convenience_focus", "dry_environment_only"]
+        buyer_question_ru: "Удобно пользоваться?"
+
+    forbidden_elements:
+      - wet_environment_demo
+      - improper_electrical_use
+      - missing_compatibility_info
+
+    recommended_questions:
+      - "Какая мощность?"
+      - "Безопасно использовать?"
+      - "Удобно держать?"
+      - "Какой разъём?"
+      - "Есть гарантия?"
+
+  fashion_accessories:
+    name: "服饰/配件类"
+    keywords: ["ремень", "кошелёк", "часы", "шарф", "шапка", "皮带", "钱包", "手表", "围巾", "帽子"]
+    evidence_priority: ["material", "size", "styling", "craftsmanship"]
+
+    slot_overrides:
+      material_evidence:
+        constraints_add: ["hardware_macro", "texture_detail", "stitching_quality"]
+        buyer_question_ru: "Материал натуральный?"
+        validation_functions: ["detect_hardware_quality", "verify_material_texture"]
+        special_note: "五金件、纹理微距是材质核心"
+
+      size_evidence:
+        constraints_add: ["size_chart", "adjustability_range", "fit_reference"]
+        buyer_question_ru: "Размер регулируется?"
+        validation_functions: ["detect_size_indicators", "verify_adjustment_mechanism"]
+
+      use_proof_action:
+        constraints_override: ["styling_demo", "no_full_face", "coordination_focus"]
+        buyer_question_ru: "Подойдёт стиль?"
+
+    forbidden_elements:
+      - overly_fashion_magazine_style
+      - complete_person_visible
+      - luxury_over_packaging
+
+    recommended_questions:
+      - "Материал натуральный?"
+      - "Размер регулируется?"
+      - "Качество фурнитуры?"
+      - "Подойдёт стиль?"
+      - "Прочная ли строчка?"
+
+# 全局约束（所有类目继承）
+global_constraints:
+  title_max_lines: 2
+  title_max_chars_per_line: 70
+  max_ordinary_lifestyle_scenes: 1
+  hands_forbidden_slots: 7
+  hands_allowed_slots: 1
+  required_evidence_types: 3
+
+# 程序化验证函数映射
+validation_functions:
+  common:
+    - validate_title_line_count
+    - detect_hands_blocking_structure
+    - count_lifestyle_scenes
+    - verify_product_consistency
+    - validate_size_evidence
+    - detect_callout_annotations
+
+  category_specific:
+    tools:
+      - verify_blade_macro_quality
+      - detect_safety_markings
+      - check_metal_surface_quality
+
+    kitchen:
+      - detect_food_grade_certification
+      - verify_kitchen_scale_reference
+      - check_temperature_resistance
+
+    home_storage:
+      - verify_load_capacity
+      - detect_mounting_hardware
+      - validate_storage_capacity
+
+    cosmetics:
+      - verify_bristle_quality
+      - detect_skin_safe_materials
+      - check_hypoallergenic_marks
+
+    electronics:
+      - detect_electrical_certification
+      - verify_interface_compatibility
+      - check_power_specifications
+
+    fashion_accessories:
+      - detect_hardware_quality
+      - verify_material_authenticity
+      - check_size_adjustability
+
+# 类目识别规则
+category_detection:
+  priority_order: ["tools", "electronics", "kitchen", "cosmetics", "fashion_accessories", "home_storage"]
+
+  keyword_weights:
+    title: 0.5
+    description: 0.3
+    tags: 0.2
+
+  fallback_category: "home_storage"  # 默认类目
+
+  confidence_threshold: 0.6  # 低于此值使用默认类目
