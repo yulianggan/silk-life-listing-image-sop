@@ -1082,6 +1082,231 @@ def build_contract(
     }
 
 
+# ============================================================================
+# V7 prompt builder — fact-driven, native-text, single-product-per-image.
+# Operates from sku_truth (see scripts/sku_truth_loader.py) instead of legacy SKU dict.
+# All v3-v6 functions above remain unchanged.
+# ============================================================================
+
+# Slot → (buyer question, evidence type, default forbidden cross-topics).
+V7_SLOT_DEFS: Dict[str, Dict[str, Any]] = {
+    "hero-product": {
+        "buyer_q_ru": "Что это?",
+        "evidence": "identification",
+        "forbidden": ["dimension labels", "callout arrows", "usage scenes", "packaging"],
+        "hands_allowed": False,
+    },
+    "size-spec": {
+        "buyer_q_ru": "Какого размера?",
+        "evidence": "dimensional",
+        "forbidden": ["usage scenes", "material close-ups", "structural callouts", "packaging"],
+        "hands_allowed": False,
+    },
+    "thin-blades": {
+        "buyer_q_ru": "Почему точный рез?",
+        "evidence": "blade_feature",
+        "forbidden": ["dimension numbers", "full usage scenes", "packaging"],
+        "hands_allowed": False,
+    },
+    "material-macro": {
+        "buyer_q_ru": "Из чего сделан?",
+        "evidence": "material_quality",
+        "forbidden": ["dimension numbers", "usage scenes", "full body callouts"],
+        "hands_allowed": False,
+    },
+    "product-callouts": {
+        "buyer_q_ru": "Какие особенности?",
+        "evidence": "structural_callout",
+        "forbidden": ["dimension numbers", "lifestyle scenes", "packaging"],
+        "hands_allowed": False,
+    },
+    "steps-123": {
+        "buyer_q_ru": "Как использовать?",
+        "evidence": "usage_steps",
+        "forbidden": ["dimension labels", "material macro", "packaging", "human hands"],
+        "hands_allowed": False,
+    },
+    "usage-demo": {
+        "buyer_q_ru": "Как держать и работать?",
+        "evidence": "use_proof",
+        "forbidden": ["dimension numbers", "material macro", "packaging", "multiple scenes"],
+        "hands_allowed": True,
+    },
+    "home-salon-scene": {
+        "buyer_q_ru": "Где использовать?",
+        "evidence": "scene_context",
+        "forbidden": ["any branded packaging", "gift boxes", "certification marks", "dimension numbers"],
+        "hands_allowed": False,
+    },
+}
+
+V7_DESIGN_HEADER = (
+    "Visual design tokens — title pill: dark navy (#1a2b50) bg + white text + rounded; "
+    "highlight label: soft green (#c8e8c4) bg + dark navy text + rounded; "
+    "scene label: dark navy bg + white text + rounded. "
+    "Russian decimal numbers use COMMA (8,5 см). Clean modern sans-serif (Inter / Roboto). "
+)
+
+V7_FIDELITY_HEADER = (
+    "Preserve the exact product identity from the reference — shape, proportions, finish. "
+    "Do not change product grade, do not over-polish or upgrade material feel. "
+    "ONE single product instance per image. "
+)
+
+
+def _v7_dimensions_clause(dims: Dict[str, Any]) -> str:
+    """Render dimension labels for size-spec slot."""
+    hits = dims.get("raw_hits") or []
+    if not hits:
+        return "(no verified dimensions — show product on a neutral scale reference, no millimeter numbers rendered)"
+    parts = [d.get("display_ru", "") for d in hits[:3]]
+    return "Render dimension label pills with thin connector lines for these VERIFIED measurements: " + ", ".join(f"\"{p}\"" for p in parts)
+
+
+def _v7_use_cases_clause(use_cases: List[Dict[str, Any]], n: int = 3) -> str:
+    if not use_cases:
+        return ""
+    sample = [u.get("case_ru", "") for u in use_cases[:n] if u.get("case_ru")]
+    short = []
+    for s in sample:
+        # truncate long use case text — keep first clause
+        s = s.split(",")[0].split("/")[0].split(":")[0].strip()
+        if 4 <= len(s) <= 60:
+            short.append(s)
+    if not short:
+        return ""
+    return "Verified use cases (from listing): " + " / ".join(f"\"{s}\"" for s in short)
+
+
+def _v7_material_clause(material: Dict[str, Any]) -> str:
+    primary = material.get("primary_ru") or "<material unspecified>"
+    finish = material.get("finish") or ""
+    return f"Material: {primary}" + (f" ({finish})" if finish else "")
+
+
+def _v7_product_name(sku_truth: Dict[str, Any]) -> str:
+    return sku_truth.get("identity", {}).get("product_name_ru") or "the product"
+
+
+def _v7_archetype_clause(sku_truth: Dict[str, Any]) -> str:
+    arch = sku_truth.get("identity", {}).get("archetype", "generic")
+    archetype_words = {
+        "office_craft": "utility / craft tool",
+        "grooming_tool": "personal grooming tool",
+        "kitchen_prep": "kitchen prep tool",
+        "home_storage": "home storage item",
+        "cosmetics": "cosmetic product",
+        "small_electronics": "small electronic device",
+        "fashion_accessory": "fashion accessory",
+        "generic": "consumer product",
+    }
+    return archetype_words.get(arch, "consumer product")
+
+
+def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
+    """Compose a v7 native-text edit-mode prompt from sku_truth + slot_id.
+
+    Output target: ≤800 chars, ≤2 negation clauses, all required overlay text,
+    fidelity-anchored to reference image, native-Russian text rendering.
+
+    Used by codex_job_runner_v7. Pre-generation, output passes through
+    prompt_reviewer.py for safe-mode/fact-fabrication scrubbing.
+    """
+    if slot_id not in V7_SLOT_DEFS:
+        raise ValueError(f"unknown v7 slot: {slot_id}")
+    slot = V7_SLOT_DEFS[slot_id]
+
+    canvas = sku_truth.get("canvas", {})
+    aspect = canvas.get("aspect_ratio", "3:4")
+    size = canvas.get("size_px", "1200x1600")
+
+    product = _v7_product_name(sku_truth)
+    archetype = _v7_archetype_clause(sku_truth)
+    material_line = _v7_material_clause(sku_truth.get("material", {}))
+    dim_line = _v7_dimensions_clause(sku_truth.get("dimensions", {}))
+    use_line = _v7_use_cases_clause(sku_truth.get("use_cases", []))
+
+    head = (
+        f"Vertical {aspect} ({size}) Russian Ozon listing image of the SAME {product} from the reference "
+        f"({archetype}). {V7_FIDELITY_HEADER}"
+    )
+
+    if slot_id == "hero-product":
+        body = (
+            f"Slot: hero-product — first impression, identification. "
+            f"Clean light technical background. {material_line}. "
+            f"Render text — top-center title pill (navy, white): \"{product}\"; "
+            f"below grey subtitle: 1-line short feature line; bottom-right small soft-green badge: 1-line short use line."
+        )
+    elif slot_id == "size-spec":
+        body = (
+            f"Slot: size-spec — clean light grey/white technical background, optional subtle metric ruler. "
+            f"{dim_line}. "
+            f"Render text — top-center title pill (navy, white): \"РАЗМЕР И ЛЕЗВИЕ\"; "
+            f"each dimension label as a pill connected by thin line to the corresponding product part."
+        )
+    elif slot_id == "thin-blades":
+        body = (
+            f"Slot: thin-blades feature highlight — show blade slim profile from clean side/quarter angle, "
+            f"closed posture matching reference. {material_line}. "
+            f"Render text — top-center title pill (navy, white): \"ТОНКИЕ ЛЕЗВИЯ\"; "
+            f"subtitle grey: \"для точного реза\"; bottom soft-green pill: 1-line claim from listing."
+        )
+    elif slot_id == "material-macro":
+        body = (
+            f"Slot: material-macro — extreme close-up of {material_line} surface and texture, fills 70%+ frame. "
+            f"Small full-product inset in a corner so SKU identity is preserved. "
+            f"Render text — top-left title pill (white, navy): \"{material_line.replace('Material: ', '').upper()}\"; "
+            f"top-right small soft-green pill: 1-line trait from listing."
+        )
+    elif slot_id == "product-callouts":
+        body = (
+            f"Slot: product-callouts — large clean product on light background, COMPLETE product visible. "
+            f"Render text — top-center title banner (navy, white): \"ОСНОВНЫЕ ОСОБЕННОСТИ\"; "
+            f"4 soft-green callout pills with thin connector lines to structural points using listing-verified feature names."
+        )
+    elif slot_id == "steps-123":
+        body = (
+            f"Slot: steps-123 — three vertical panels showing the SAME ONE {product} in 3 verified usage cases. "
+            f"Each panel uses an abstract paper-craft / floating context object (no human body parts). "
+            f"All 3 panels show IDENTICAL product proportions and shape. {use_line}. "
+            f"Render text — top-center title pill (navy, white): \"ТРИ СПОСОБА ПРИМЕНЕНИЯ\"; "
+            f"three large soft-green numbered squares 1/2/3 on the left, each with a navy-pill label per case."
+        )
+    elif slot_id == "usage-demo":
+        body = (
+            f"Slot: usage-demo — two-hand collaboration demo. Top-left: hand holds the {product}; bottom-right: "
+            f"second hand presents target. Frame stops at wrists. Hands photorealistic, anatomically correct, "
+            f"5 fingers each, no extras or fused digits. Product 80% unobstructed. "
+            f"Render text — top-center title pill (navy, white): \"ПРАВИЛЬНОЕ ИСПОЛЬЗОВАНИЕ\"; "
+            f"subtitle grey: \"две руки для контроля\"; bottom soft-green pill: 1-line trust line."
+        )
+    elif slot_id == "home-salon-scene":
+        pkg = sku_truth.get("packaging", {})
+        if pkg.get("has_real_reference_image"):
+            body = (
+                f"Slot: home-salon-scene — product on a styled tabletop with the verified packaging reference. "
+                f"Render text — top-center title pill (navy, white): \"ИДЕАЛЬНЫЙ ВЫБОР\"; "
+                f"bottom soft-green pill: 1-line use-context line."
+            )
+        else:
+            body = (
+                f"Slot: home-salon-scene — product on a styled tabletop with generic real props (linen towel corner, "
+                f"natural greenery, plain ceramic dish). NO branded packaging, NO gift box, NO logo. "
+                f"Render text — top-center title pill (navy, white): \"ДОМА И В САЛОНЕ\"; "
+                f"bottom soft-green pill: 1-line ежедневное use-context line."
+            )
+    else:
+        body = ""
+
+    forbidden_clause = ""
+    if slot["forbidden"]:
+        forbidden_clause = " Do not include: " + ", ".join(slot["forbidden"][:2]) + "."
+
+    full = f"{head} {body}{forbidden_clause} {V7_DESIGN_HEADER}"
+    return full.strip()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("standard_sku", type=Path, help="Path to standard_sku.json")
