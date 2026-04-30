@@ -33,6 +33,7 @@ DEFAULT_KEY_FILE = Path.home() / ".config" / "gpt_image_api_key"
 JIEKOU_KEY_FILE = Path.home() / ".config" / "jiekou_api_key"
 CHAT_API_URL = os.environ.get("CRITIC_BASE_URL", DEFAULT_CHAT_BASE).rstrip("/") + "/chat/completions"
 CRITIC_MODEL = os.environ.get("CRITIC_MODEL", "gpt-5.5")  # upgraded 2026-04-30: gpt-5.4-mini missed scissor deformation + hand anomalies
+CRITIC_REASONING = os.environ.get("CRITIC_REASONING", "high")  # high reasoning for catching subtle anatomy/deformation issues
 
 WEIGHTS = {
     "product_consistency": 0.4,
@@ -157,6 +158,7 @@ def review(api_key: str, generated_png: Path, reference_img: Path, slot_id: str)
     system_prompt = BASE_SYSTEM_PROMPT + slot_compliance_addendum(slot_id)
     body = {
         "model": CRITIC_MODEL,
+        "reasoning_effort": CRITIC_REASONING,
         "messages": [
             {"role": "system", "content": system_prompt},
             {
