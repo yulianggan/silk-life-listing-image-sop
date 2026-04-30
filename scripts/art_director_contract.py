@@ -1318,10 +1318,15 @@ def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
     )
 
     if slot_id == "hero-product":
-        # Use a SHORT product name for hero (full title is too long per user feedback)
-        short_name = product.split(",")[0].split(":")[0].strip()
+        # Use a SHORT product name for hero (full title is too long per user feedback).
+        # Cannot split on "," because Russian decimal comma ("0,9 см") would be cut. Use ":" / "—" / length truncation.
+        short_name = product.split(":")[0].split("—")[0].split("—")[0].strip()
+        # If still too long, take first 4 words but stop before any subordinate listing detail
         if len(short_name) > 36:
-            short_name = " ".join(short_name.split()[:3])
+            words = short_name.split()
+            short_name = " ".join(words[:4])
+        if len(short_name) > 36:
+            short_name = short_name[:33].rstrip() + "…"
         body = (
             f"Slot: hero-product — first impression, identification. "
             f"Clean light technical background, dramatic studio lighting. {material_line}. "

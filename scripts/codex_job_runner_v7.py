@@ -131,6 +131,7 @@ def run_slot(
         attempt: Dict[str, Any] = {"i": attempt_idx + 1}
 
         # Step 2: prompt_reviewer (skip on retry — we already injected critic hints)
+        # On reviewer failure: fall back to raw prompt (don't kill the slot)
         if not skip_review and attempt_idx == 0:
             try:
                 rev = prompt_reviewer.review(
@@ -142,8 +143,14 @@ def run_slot(
                 attempt["review_verdict"] = rev.get("verdict")
                 attempt["review_chars"] = (rev.get("char_count_before"), rev.get("char_count_after"))
                 attempt["review_issues"] = rev.get("issues_found", [])[:5]
+            except SystemExit as e:
+                # prompt_reviewer raises SystemExit on transient endpoint errors.
+                # Don't kill the slot — proceed with raw prompt.
+                attempt["review_error"] = f"reviewer_systemexit: {str(e)[:200]}"
+                attempt["review_verdict"] = "fallback_raw_prompt"
             except Exception as e:
-                attempt["review_error"] = str(e)[:200]
+                attempt["review_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+                attempt["review_verdict"] = "fallback_raw_prompt"
 
         # On retry: append last critic's issues as negative hints
         if attempt_idx > 0 and last_critic:
