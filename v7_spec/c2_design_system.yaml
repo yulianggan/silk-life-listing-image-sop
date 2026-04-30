@@ -13,6 +13,20 @@ design_principles:
   cross_slot_consistency: "All 8 slots share the same visual DNA while serving different purposes"
   russian_text_optimization: "Typography sized and spaced for Cyrillic text readability"
 
+# === HARD ASPECT / SIZE LOCK (added 2026-04-30 per user rule) ===
+# User rule: "图片尺寸一定需要固定3:4除非客户要求，3:4尺寸固定到1200 × 1600"
+canvas:
+  default_aspect_ratio: "3:4"      # vertical, w:h = 3:4
+  default_size_px: "1200x1600"     # width x height
+  full_bleed_required: true        # content fills entire frame, no side gutters or letterbox
+  customer_override_allowed: true  # only when client explicitly requests another size
+  notes: |
+    Earlier silk-life prompts loosely said "3:4" while using 1024x1536 which is actually 2:3.
+    v7 correction: aspect "3:4" means width:height = 3:4 strictly — 1200x1600 is the canonical default.
+    Other Ozon-acceptable sizes only when customer explicitly requests them.
+    All image-generation backends (gptimage_backend / codex_backend / jiekou_backend) MUST send
+    size="1200x1600" by default; deviations require explicit override flag.
+
 # === COLOR PALETTE ===
 # Based on user's exact specifications: 深蓝 (navy), 浅绿 (light green), 白底 (white background)
 palette:

@@ -11,8 +11,35 @@ purpose: "Enforce user's 5 hard rules through mandatory fact verification before
 # Rule 3: Dimensions from facts only → dimensions.source tracks fact provenance
 # Rule 4: Use cases from SKU only → use_cases.source enforces traceability
 # Rule 5: Each image = 1 question → slot_question_v7.yaml forbidden_cross_topics enforcement
+# Rule 8 (added 2026-04-30): Aspect 3:4 locked to 1200x1600 unless customer explicitly overrides
+#   → canvas.aspect_ratio + canvas.size_px enforced; see c2_design_system.yaml canvas: section
 
 sku_truth:
+  # === CANVAS (Required for ALL slots, added 2026-04-30) ===
+  # User rule: "图片尺寸一定需要固定3:4除非客户要求，3:4尺寸固定到1200 × 1600"
+  canvas:
+    aspect_ratio:
+      type: string
+      required: true
+      default: "3:4"
+      allowed: ["3:4", "1:1", "4:3", "16:9", "<custom>"]
+      description: "Image aspect ratio. Default 3:4 (vertical). Customer override required to deviate."
+    size_px:
+      type: string
+      required: true
+      default: "1200x1600"
+      description: "Resolved canvas size in pixels. Default 1200x1600 for 3:4. Backends must use this size."
+    full_bleed:
+      type: boolean
+      required: true
+      default: true
+      description: "Content fills entire frame; no side gutters or letterbox bands."
+    customer_override:
+      type: object
+      required: false
+      description: "Set when customer explicitly requests non-default aspect/size."
+      example: {requested_by: "client_brief_2026-05", aspect_ratio: "1:1", size_px: "1500x1500"}
+
   # === CORE IDENTITY (Required for ALL slots) ===
   identity:
     sku_id:
