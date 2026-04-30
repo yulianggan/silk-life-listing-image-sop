@@ -1,0 +1,394 @@
+# V7 Design System — Unified Visual Token System
+# Enforces user rule: "文字组件统一" — consistent typography and visual components across all 8 slots
+# Based on user's exact 4 component specifications + extensions for complete coverage
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Complete design token system for silk-life v7 image generation with strict visual consistency"
+
+# === CORE DESIGN PRINCIPLES ===
+design_principles:
+  visual_unity: "One font family, one radius system, consistent color relationships across all slots"
+  user_rule_compliance: "Exact implementation of user's 4 specified text component styles"
+  cross_slot_consistency: "All 8 slots share the same visual DNA while serving different purposes"
+  russian_text_optimization: "Typography sized and spaced for Cyrillic text readability"
+
+# === COLOR PALETTE ===
+# Based on user's exact specifications: 深蓝 (navy), 浅绿 (light green), 白底 (white background)
+palette:
+  # Primary Colors (User Specified)
+  navy_primary: "#1a2b50"          # 深蓝主色 — main brand color for titles and text
+  navy_dark: "#0f1d3d"             # 深蓝阴影 — darker variant for shadows/borders
+  green_soft: "#c8e8c4"            # 浅绿 — user-specified light green for highlights
+  green_accent: "#4a7c59"          # 绿色单位 — darker green for units and icons
+  white: "#ffffff"                 # 白底 — clean white backgrounds
+
+  # Supporting Colors (System Extensions)
+  grey_subtitle: "#6b7280"         # 副标题灰色 — for secondary text
+  grey_light: "#e5e7eb"            # 浅灰 — for subtle borders
+  background_neutral: "#f8f9fa"    # 中性背景 — when pure white is too stark
+  text_shadow: "rgba(0,0,0,0.1)"   # 文字阴影 — subtle text shadows for readability
+
+# === TYPOGRAPHY SYSTEM ===
+# User rule: "全套只使用一套字体" — single font family across all components
+typography:
+  # Font Family (Unified)
+  family_primary: "Inter, 'Roboto', 'Noto Sans', sans-serif"  # Primary: Inter for clean Russian support
+  family_fallback: "'Arial', 'Helvetica Neue', sans-serif"    # System fallbacks for compatibility
+
+  # Font Weights (Semantic)
+  weights:
+    regular: 400      # Body text, subtle elements
+    medium: 500       # Secondary emphasis
+    semibold: 600     # Strong emphasis, important labels
+    bold: 700         # Headlines, primary calls to action
+
+  # Font Scale (Russian-Optimized Sizes)
+  sizes:
+    title_hero: 42    # Main hero titles (slot hero-identification)
+    title_section: 32 # Section titles across slots
+    label_pill: 24    # Pill labels and callouts
+    body_large: 20    # Primary body text
+    body_regular: 18  # Standard body text
+    caption: 14       # Small captions and units
+    micro: 12         # Fine print, technical details
+
+# === RADIUS SYSTEM ===
+# User rule: "全套只使用一套圆角半径" — unified radius values
+radius:
+  pill_full: 999     # 完全胶囊 — fully rounded pills (title/scene labels)
+  rounded_lg: 16     # 大圆角 — large rounded corners (cards, panels)
+  rounded_md: 12     # 中圆角 — medium rounded (dimension cards, secondary elements)
+  rounded_sm: 6      # 小圆角 — small rounded (micro elements, borders)
+  square: 0          # 直角 — sharp corners (when geometric precision needed)
+
+# === SHADOW SYSTEM ===
+shadows:
+  pill_subtle: "0 1px 3px rgba(26, 43, 80, 0.1)"      # 标签轻微阴影
+  card_lift: "0 4px 12px rgba(26, 43, 80, 0.08)"      # 卡片悬浮阴影
+  text_readable: "0 1px 2px rgba(0, 0, 0, 0.3)"       # 文字可读性阴影
+  none: "none"                                          # 无阴影
+
+# === SPACING SYSTEM ===
+spacing:
+  # Padding (内边距)
+  padding_pill: "12px 24px"        # Pill components internal spacing
+  padding_card: "16px 20px"        # Card components internal spacing
+  padding_tight: "8px 12px"        # Compact components
+  padding_loose: "20px 28px"       # Spacious components
+
+  # Margins (外边距)
+  margin_stack_sm: "8px"           # Small vertical stacking
+  margin_stack_md: "16px"          # Medium vertical stacking
+  margin_stack_lg: "24px"          # Large section spacing
+
+  # Line Heights (行高)
+  line_height_tight: 1.2           # Compact text (titles)
+  line_height_normal: 1.4          # Standard text
+  line_height_relaxed: 1.6         # Spacious text (body paragraphs)
+
+# === TEXT COMPONENTS ===
+# User-specified 4 core components + essential extensions
+components:
+
+  # === USER-SPECIFIED CORE COMPONENTS ===
+
+  - id: "title_main_pill"
+    buyer_question_role: "主标题条 — 顶部主要标题"
+    user_specification: "深蓝底白字"
+
+    # Visual Properties
+    bg_color: "navy_primary"         # #1a2b50
+    text_color: "white"              # #ffffff
+    font_size: "title_section"       # 32px
+    font_weight: "bold"              # 700
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "pill_full"       # 999px (完全胶囊)
+    padding: "padding_pill"          # 12px 24px
+    text_shadow: "text_readable"     # 0 1px 2px rgba(0,0,0,0.3)
+    box_shadow: "pill_subtle"        # Subtle lift
+
+    # Content Constraints
+    max_chars_per_line: 28           # 俄文字符限制
+    max_lines: 2                     # 最多2行
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2 (紧凑)
+
+    # Usage Guidelines
+    usage_slots: ["hero-identification", "size-spec", "material-macro", "product-callouts", "use-proof", "usage-demo", "unboxing-scene", "safety-trust"]
+    usage_purpose: "Primary section identifier across all slots"
+
+  - id: "highlight_label_pill"
+    buyer_question_role: "重点标签 — callout引线终点标签"
+    user_specification: "浅绿底深蓝字"
+
+    # Visual Properties
+    bg_color: "green_soft"           # #c8e8c4
+    text_color: "navy_primary"       # #1a2b50
+    font_size: "label_pill"          # 24px
+    font_weight: "semibold"          # 600
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "pill_full"       # 999px (完全胶囊)
+    padding: "padding_tight"         # 8px 12px
+    box_shadow: "pill_subtle"        # Subtle lift
+
+    # Content Constraints
+    max_chars_per_line: 20           # 简洁标签
+    max_lines: 1                     # 单行only
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2
+
+    # Usage Guidelines
+    usage_slots: ["product-callouts", "use-proof", "usage-demo", "safety-trust"]
+    usage_purpose: "Callout endpoint labels, feature highlights, emphasis markers"
+
+  - id: "dimension_card"
+    buyer_question_role: "尺寸卡 — 白底深蓝数字绿色单位"
+    user_specification: "白底 + 深蓝数字 + 绿色单位"
+    component_type: "composite"      # 复合组件：数字+单位
+
+    # Background Properties
+    bg_color: "white"                # #ffffff
+    border_color: "grey_light"       # #e5e7eb (subtle border)
+    border_width: "1px"
+    border_radius: "rounded_md"      # 12px
+    padding: "padding_card"          # 16px 20px
+    box_shadow: "card_lift"          # 0 4px 12px rgba(26, 43, 80, 0.08)
+
+    # Number Component
+    number_color: "navy_primary"     # #1a2b50 (深蓝数字)
+    number_font_size: "title_section" # 32px
+    number_font_weight: "bold"       # 700
+    number_font_family: "family_primary"
+
+    # Unit Component
+    unit_color: "green_accent"       # #4a7c59 (绿色单位)
+    unit_font_size: "body_large"     # 20px
+    unit_font_weight: "medium"       # 500
+    unit_font_family: "family_primary"
+
+    # Layout Pattern
+    layout_pattern: "<number_large> <unit_smaller>"  # "25 см"
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2
+
+    # Usage Guidelines
+    usage_slots: ["size-spec"]       # 专用于尺寸展示slot
+    usage_purpose: "Dimensional measurements display — numbers in navy, units in green"
+
+  - id: "scene_label_pill"
+    buyer_question_role: "场景标签 — 用途场景标识"
+    user_specification: "深蓝底白字"  # Same as title_main_pill but different purpose
+
+    # Visual Properties
+    bg_color: "navy_primary"         # #1a2b50
+    text_color: "white"              # #ffffff
+    font_size: "label_pill"          # 24px
+    font_weight: "bold"              # 700
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "pill_full"       # 999px (完全胶囊)
+    padding: "padding_tight"         # 8px 12px
+    text_shadow: "text_readable"     # 可读性阴影
+    box_shadow: "pill_subtle"        # Subtle lift
+
+    # Content Constraints
+    max_chars_per_line: 16           # 简洁场景描述
+    max_lines: 1                     # 单行only
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2
+
+    # Usage Guidelines
+    usage_slots: ["use-proof", "usage-demo"]
+    usage_purpose: "Usage scenario identifiers (厨房, 办公, 户外 etc.)"
+
+  # === SYSTEM EXTENSIONS (beyond user's 4 core) ===
+
+  - id: "numbered_step_badge"
+    buyer_question_role: "数字步骤徽章 — 1/2/3序号"
+
+    # Visual Properties
+    bg_color: "green_soft"           # #c8e8c4 (matches highlight_label)
+    text_color: "navy_primary"       # #1a2b50
+    font_size: "title_section"       # 32px (large for visibility)
+    font_weight: "bold"              # 700
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties (Square Badge)
+    border_radius: "rounded_lg"      # 16px (slightly rounded square)
+    padding: "16px"                  # Square internal spacing
+    box_shadow: "card_lift"          # Strong shadow for separation
+    min_width: "56px"               # Consistent square proportions
+    min_height: "56px"
+
+    # Content Constraints
+    max_chars: 1                     # Single digit only
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2
+
+    # Usage Guidelines
+    usage_slots: ["usage-demo", "unboxing-scene"]
+    usage_purpose: "Sequential step numbering (1, 2, 3)"
+
+  - id: "subtitle_secondary_text"
+    buyer_question_role: "副标题文字 — 说明性次要文字"
+
+    # Visual Properties
+    bg_color: "transparent"          # 透明背景
+    text_color: "grey_subtitle"      # #6b7280
+    font_size: "body_regular"        # 18px
+    font_weight: "regular"           # 400
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "square"          # 0 (无圆角)
+    padding: "4px 0"                 # 最小内边距
+    box_shadow: "none"               # 无阴影
+
+    # Content Constraints
+    max_chars_per_line: 35           # 较长说明文字
+    max_lines: 3                     # 最多3行说明
+    text_align: "left"               # 左对齐
+    line_height: "line_height_normal" # 1.4
+
+    # Usage Guidelines
+    usage_slots: ["hero-identification", "size-spec", "material-macro", "safety-trust"]
+    usage_purpose: "Explanatory text below main titles"
+
+  - id: "technical_annotation_label"
+    buyer_question_role: "技术标注标签 — 产品结构标注"
+
+    # Visual Properties
+    bg_color: "white"                # #ffffff
+    text_color: "navy_primary"       # #1a2b50
+    border_color: "navy_primary"     # #1a2b50 (明确边框)
+    border_width: "2px"              # 明显边框
+    font_size: "caption"             # 14px (小尺寸)
+    font_weight: "semibold"          # 600
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "rounded_sm"      # 6px (小圆角)
+    padding: "padding_tight"         # 8px 12px
+    box_shadow: "pill_subtle"        # 轻微阴影
+
+    # Content Constraints
+    max_chars_per_line: 12           # 简短技术术语
+    max_lines: 1                     # 单行only
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_tight" # 1.2
+
+    # Usage Guidelines
+    usage_slots: ["product-callouts"]
+    usage_purpose: "Technical component labels with callout lines"
+
+  - id: "material_spec_tag"
+    buyer_question_role: "材质规格标签 — 材料属性标识"
+
+    # Visual Properties
+    bg_color: "background_neutral"   # #f8f9fa
+    text_color: "navy_primary"       # #1a2b50
+    font_size: "body_regular"        # 18px
+    font_weight: "medium"            # 500
+    font_family: "family_primary"    # Inter
+
+    # Layout Properties
+    border_radius: "rounded_md"      # 12px
+    padding: "padding_card"          # 16px 20px
+    box_shadow: "none"               # 无阴影（平面设计）
+    border_color: "grey_light"       # #e5e7eb
+    border_width: "1px"
+
+    # Content Constraints
+    max_chars_per_line: 18           # 材质描述文字
+    max_lines: 2                     # 最多2行
+    text_align: "center"             # 居中对齐
+    line_height: "line_height_normal" # 1.4
+
+    # Usage Guidelines
+    usage_slots: ["material-macro"]
+    usage_purpose: "Material property descriptions (不锈钢, 304钢, 磨砂表面 etc.)"
+
+# === COMPONENT USAGE MATRIX ===
+# Maps each slot to its recommended text components
+slot_component_recommendations:
+
+  "hero-identification":
+    primary: ["title_main_pill"]
+    secondary: ["subtitle_secondary_text"]
+    optional: ["highlight_label_pill"]       # For optional brand badge
+    forbidden: ["dimension_card", "technical_annotation_label"]
+
+  "size-spec":
+    primary: ["title_main_pill", "dimension_card"]  # Title + 3x dimension cards
+    secondary: ["subtitle_secondary_text"]
+    optional: []
+    forbidden: ["scene_label_pill", "material_spec_tag"]
+
+  "material-macro":
+    primary: ["title_main_pill", "material_spec_tag"]
+    secondary: ["subtitle_secondary_text"]
+    optional: ["highlight_label_pill"]       # For material quality highlights
+    forbidden: ["dimension_card", "numbered_step_badge"]
+
+  "product-callouts":
+    primary: ["title_main_pill", "technical_annotation_label"]  # Title + 3+ callout labels
+    secondary: ["highlight_label_pill"]      # For key feature emphasis
+    optional: ["subtitle_secondary_text"]
+    forbidden: ["dimension_card", "scene_label_pill"]
+
+  "use-proof":
+    primary: ["title_main_pill", "scene_label_pill"]  # Title + usage context labels
+    secondary: ["subtitle_secondary_text"]
+    optional: ["highlight_label_pill"]       # For benefit callouts
+    forbidden: ["dimension_card", "technical_annotation_label"]
+
+  "usage-demo":
+    primary: ["title_main_pill", "numbered_step_badge"]  # Title + step numbers
+    secondary: ["scene_label_pill"]          # Usage context
+    optional: ["highlight_label_pill"]       # For key technique emphasis
+    forbidden: ["dimension_card", "material_spec_tag"]
+
+  "unboxing-scene":
+    primary: ["title_main_pill"]
+    secondary: ["subtitle_secondary_text"]   # Package contents description
+    optional: ["numbered_step_badge"]        # For multi-item numbering
+    forbidden: ["scene_label_pill", "technical_annotation_label"]
+
+  "safety-trust":
+    primary: ["title_main_pill"]
+    secondary: ["highlight_label_pill"]      # For certification badges
+    optional: ["subtitle_secondary_text"]    # For trust explanations
+    forbidden: ["dimension_card", "numbered_step_badge"]
+
+# === VALIDATION RULES ===
+design_system_validation:
+
+  color_consistency:
+    rule: "Only use palette-defined colors — no ad-hoc hex values"
+    enforcement: "Prompt generation must reference palette.<color_name> syntax"
+
+  typography_unity:
+    rule: "family_primary must be used across all components"
+    enforcement: "No font family mixing — Inter for all text elements"
+
+  radius_consistency:
+    rule: "Only use radius system values — no custom border-radius"
+    enforcement: "All rounded elements use radius.<radius_name> syntax"
+
+  component_slot_compliance:
+    rule: "Each slot can only use its allowed component types"
+    enforcement: "Block generation if forbidden components detected in prompt"
+
+  user_specification_fidelity:
+    rule: "Core 4 components must match user's exact color specifications"
+    validation:
+      - "title_main_pill: navy background + white text ✓"
+      - "highlight_label_pill: green background + navy text ✓"
+      - "dimension_card: white background + navy numbers + green units ✓"
+      - "scene_label_pill: navy background + white text ✓"

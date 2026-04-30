@@ -1,0 +1,408 @@
+# V7 Slot Component Mapping
+# Maps each C0-defined slot to its allowed text components from c2_design_system.yaml
+# Enforces strict component usage rules per slot to maintain visual consistency and cross-topic isolation
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Component usage matrix for 8 v7 slots based on buyer question isolation rules"
+
+# === SLOT-TO-COMPONENT MAPPING ===
+# Based on C0 slot definitions and user's 4 core component specifications
+
+slot_component_matrix:
+
+  # === SLOT 1: HERO IDENTIFICATION ("Что это?") ===
+  hero-identification:
+    slot_order: 1
+    buyer_question: "Что это?"
+    primary_purpose: "Product recognition and basic category understanding"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Main product identification title"
+        content_example: "Керамический нож для кухни"
+        positioning: "top-center"
+
+    recommended_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Brief product category explanation"
+        content_example: "Профессиональный кухонный инструмент"
+        positioning: "below-title"
+
+    optional_components:
+      - component_id: "highlight_label_pill"
+        usage: "Brand badge or key differentiator (bottom-right)"
+        content_example: "Премиум качество"
+        positioning: "bottom-right-corner"
+        usage_condition: "Only if strong brand/quality differentiator exists"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "technical_annotation_label" # Technical details are product-callouts's job
+      - "scene_label_pill"         # Usage context is use-proof's job
+      - "numbered_step_badge"      # Steps are usage-demo's job
+      - "material_spec_tag"        # Material is material-macro's job
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "usage", "construction"]
+      must_focus_on: ["identity", "category", "basic_form"]
+
+  # === SLOT 2: SIZE SPECIFICATION ("Какого размера?") ===
+  size-spec:
+    slot_order: 2
+    buyer_question: "Какого размера?"
+    primary_purpose: "Precise size understanding with measurement context"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Size specification section title"
+        content_example: "Размеры изделия"
+        positioning: "top-center"
+
+      - component_id: "dimension_card"
+        usage: "Measurement display cards (typically 3 cards: length, width, height)"
+        content_patterns:
+          - "25 см"     # Length
+          - "3 см"      # Width
+          - "1.2 см"    # Height
+        positioning: "arranged-grid"
+        multiplicity: "3"  # Length, width, height typically
+
+    recommended_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Measurement context or reference note"
+        content_example: "Размеры указаны с упаковкой"
+        positioning: "below-title"
+
+    optional_components: []  # Size-spec is focused and minimal
+
+    forbidden_components:
+      - "scene_label_pill"         # Usage context forbidden
+      - "technical_annotation_label" # Technical callouts forbidden
+      - "highlight_label_pill"     # Avoid marketing emphasis in measurement
+      - "numbered_step_badge"      # No step sequences in size
+      - "material_spec_tag"        # Material focus forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["material", "usage", "construction", "trust"]
+      must_focus_on: ["dimensions", "scale", "reference_objects"]
+
+  # === SLOT 3: MATERIAL EVIDENCE ("Из чего сделано?") ===
+  material-macro:
+    slot_order: 3
+    buyer_question: "Из чего сделано?"
+    primary_purpose: "Material composition and quality verification"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Material section title"
+        content_example: "Материал изделия"
+        positioning: "top-center"
+
+      - component_id: "material_spec_tag"
+        usage: "Material property descriptions"
+        content_examples:
+          - "Нержавеющая сталь 304"
+          - "Матовая поверхность"
+          - "Пищевой материал"
+        positioning: "overlay-on-macro-surface"
+        multiplicity: "1-2"  # Primary material + surface finish
+
+    recommended_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Material quality explanation"
+        content_example: "Высококачественная японская сталь"
+        positioning: "below-title"
+
+    optional_components:
+      - component_id: "highlight_label_pill"
+        usage: "Material quality emphasis"
+        content_example: "Антикоррозийный"
+        positioning: "corner-emphasis"
+        usage_condition: "Only if material has standout quality feature"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "technical_annotation_label" # Technical callouts are product-callouts's job
+      - "scene_label_pill"         # Usage context forbidden
+      - "numbered_step_badge"      # No sequences in material focus
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "usage", "construction", "packaging"]
+      must_focus_on: ["material_composition", "surface_quality", "material_grade"]
+
+  # === SLOT 4: STRUCTURAL CALLOUTS ("Как устроено?") ===
+  product-callouts:
+    slot_order: 4
+    buyer_question: "Как устроено?"
+    primary_purpose: "Product construction and component explanation"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Construction explanation title"
+        content_example: "Конструкция изделия"
+        positioning: "top-center"
+
+      - component_id: "technical_annotation_label"
+        usage: "Component callout labels with leader lines"
+        content_examples:
+          - "Эргономичная ручка"
+          - "Острое лезвие"
+          - "Защитный чехол"
+        positioning: "callout-endpoints"
+        multiplicity: "3-4"  # Minimum 3 callouts per C0 constraint
+
+    recommended_components:
+      - component_id: "highlight_label_pill"
+        usage: "Key feature emphasis"
+        content_example: "Главное преимущество"
+        positioning: "prominent-feature"
+
+    optional_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Brief construction overview"
+        content_example: "Продуманная конструкция для удобства"
+        positioning: "below-title"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "scene_label_pill"         # Usage context forbidden
+      - "numbered_step_badge"      # Steps are usage-demo's job
+      - "material_spec_tag"        # Material details forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "usage_demonstration", "packaging"]
+      must_focus_on: ["structural_design", "component_function", "assembly_features"]
+
+  # === SLOT 5: USE PROOF ("Для чего годится?") ===
+  use-proof:
+    slot_order: 5
+    buyer_question: "Для чего годится?"
+    primary_purpose: "Valid usage context demonstration (ONLY from documented use_cases)"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Usage scenarios title"
+        content_example: "Области применения"
+        positioning: "top-center"
+
+      - component_id: "scene_label_pill"
+        usage: "Usage context identifiers"
+        content_examples:
+          - "Кухня"
+          - "Ресторан"
+          - "Кемпинг"
+        positioning: "context-corners"
+        multiplicity: "2-3"  # Different valid use contexts
+
+    recommended_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Usage scenario explanation"
+        content_example: "Подходит для профессиональной и домашней кухни"
+        positioning: "below-title"
+
+    optional_components:
+      - component_id: "highlight_label_pill"
+        usage: "Key benefit callout"
+        content_example: "Универсальное применение"
+        positioning: "benefit-emphasis"
+        usage_condition: "Only if clear benefit exists from use case"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "technical_annotation_label" # Technical details forbidden
+      - "numbered_step_badge"      # Steps are usage-demo's job
+      - "material_spec_tag"        # Material focus forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "construction", "packaging"]
+      must_focus_on: ["documented_usage_scenarios", "appropriate_contexts", "valid_applications"]
+
+    c0_constraint_enforcement:
+      usage_source_restriction: "ONLY_from_sku_truth.use_cases"  # Cannot invent use cases
+
+  # === SLOT 6: USAGE DEMONSTRATION ("Как использовать?") ===
+  usage-demo:
+    slot_order: 6
+    buyer_question: "Как использовать?"
+    primary_purpose: "Actual usage demonstration with hands (structure must remain visible)"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Usage demonstration title"
+        content_example: "Способ применения"
+        positioning: "top-center"
+
+      - component_id: "numbered_step_badge"
+        usage: "Sequential step indicators"
+        content_examples:
+          - "1"  # First step
+          - "2"  # Second step
+          - "3"  # Third step
+        positioning: "step-sequence"
+        multiplicity: "2-3"  # Typical usage sequence
+
+    recommended_components:
+      - component_id: "scene_label_pill"
+        usage: "Usage context identifier"
+        content_example: "Правильный хват"
+        positioning: "technique-label"
+
+    optional_components:
+      - component_id: "highlight_label_pill"
+        usage: "Key technique emphasis"
+        content_example: "Важно!"
+        positioning: "technique-callout"
+        usage_condition: "Only if critical technique point exists"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "technical_annotation_label" # Technical callouts forbidden
+      - "material_spec_tag"        # Material focus forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "construction", "packaging"]
+      must_focus_on: ["operation_demonstration", "proper_technique", "usage_results"]
+
+    c0_constraint_enforcement:
+      hands_allowed: true  # ONLY slot where hands are permitted
+      hands_blocking_structure: false  # Critical: hands cannot block key structure
+
+  # === SLOT 7: UNBOXING SCENE ("Что в комплекте?") ===
+  unboxing-scene:
+    slot_order: 7
+    buyer_question: "Что в комплекте?"
+    primary_purpose: "Package contents and included items verification"
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Package contents title"
+        content_example: "Комплектация"
+        positioning: "top-center"
+
+    recommended_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Package contents description"
+        content_example: "Полный комплект для использования"
+        positioning: "below-title"
+
+    optional_components:
+      - component_id: "numbered_step_badge"
+        usage: "Item numbering for multi-item packages"
+        content_examples:
+          - "1"  # Main product
+          - "2"  # Accessory 1
+          - "3"  # Accessory 2
+        positioning: "item-identifiers"
+        multiplicity: "variable"  # Depends on package contents
+        usage_condition: "Only if multiple distinct items need identification"
+
+    forbidden_components:
+      - "scene_label_pill"         # Usage context forbidden in packaging
+      - "technical_annotation_label" # Technical callouts forbidden
+      - "highlight_label_pill"     # Avoid marketing emphasis in packaging
+      - "dimension_card"           # Size is size-spec's job
+      - "material_spec_tag"        # Material focus forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "usage", "construction"]
+      must_focus_on: ["packaging_contents", "included_accessories", "quantity_verification"]
+
+    c0_constraint_enforcement:
+      packaging_source: "real_reference_only"  # Cannot invent packaging elements
+      branding_constraint: "only_observed_elements"  # No fake branding
+
+  # === SLOT 8: TRUST/SAFETY ("Почему стоит купить?") ===
+  safety-trust:
+    slot_order: 8
+    buyer_question: "Почему стоит купить?"
+    primary_purpose: "Safety certifications, quality indicators, trust signals"
+    optional_slot: true  # Can be omitted for 7-slot sets
+
+    required_components:
+      - component_id: "title_main_pill"
+        usage: "Trust/safety title"
+        content_example: "Гарантии качества"
+        positioning: "top-center"
+
+    recommended_components:
+      - component_id: "highlight_label_pill"
+        usage: "Certification badges and trust markers"
+        content_examples:
+          - "Сертифицировано"
+          - "FDA одобрено"
+          - "CE маркировка"
+        positioning: "certification-badges"
+        multiplicity: "2-3"  # Multiple trust indicators
+
+    optional_components:
+      - component_id: "subtitle_secondary_text"
+        usage: "Trust explanation text"
+        content_example: "Соответствует европейским стандартам безопасности"
+        positioning: "below-title"
+
+    forbidden_components:
+      - "dimension_card"           # Size is size-spec's job
+      - "technical_annotation_label" # Technical details forbidden
+      - "scene_label_pill"         # Usage context forbidden
+      - "numbered_step_badge"      # No sequences in trust
+      - "material_spec_tag"        # Material focus forbidden
+
+    cross_topic_isolation:
+      cannot_answer: ["size", "material", "usage", "construction", "packaging"]
+      must_focus_on: ["safety_certifications", "quality_marks", "trust_indicators"]
+
+# === COMPONENT USAGE STATISTICS ===
+component_usage_analysis:
+
+  most_universal_components:
+    - "title_main_pill"          # Used in all 8 slots
+    - "subtitle_secondary_text"   # Used in 6+ slots (recommended)
+
+  specialized_components:
+    - "dimension_card"           # Only size-spec slot
+    - "numbered_step_badge"      # Only usage-demo, unboxing-scene
+    - "material_spec_tag"        # Only material-macro slot
+    - "technical_annotation_label" # Only product-callouts slot
+
+  contextual_components:
+    - "scene_label_pill"         # Only use-proof, usage-demo slots
+    - "highlight_label_pill"     # Multiple slots but contextual usage
+
+  total_components_per_slot:
+    hero-identification: "2-3 components"     # Title + subtitle + optional highlight
+    size-spec: "4-5 components"              # Title + 3 dimension cards + optional subtitle
+    material-macro: "3-4 components"         # Title + 1-2 material tags + subtitle + optional highlight
+    product-callouts: "5-6 components"       # Title + 3-4 annotation labels + highlight + optional subtitle
+    use-proof: "4-5 components"              # Title + 2-3 scene labels + subtitle + optional highlight
+    usage-demo: "4-5 components"             # Title + 2-3 step badges + scene label + optional highlight
+    unboxing-scene: "2-4 components"         # Title + subtitle + optional numbered badges
+    safety-trust: "3-5 components"           # Title + 2-3 highlight badges + optional subtitle
+
+# === VALIDATION MATRIX ===
+slot_validation_rules:
+
+  cross_topic_contamination_prevention:
+    rule: "Each slot can ONLY use components appropriate to its buyer_question"
+    enforcement: "Block generation if forbidden components detected"
+
+  component_multiplicity_limits:
+    title_main_pill: "max_1_per_slot"       # Only one main title per slot
+    dimension_card: "max_3_per_slot"        # Length, width, height typically
+    numbered_step_badge: "max_3_per_slot"   # Reasonable step sequence limit
+    scene_label_pill: "max_3_per_slot"      # Multiple contexts but not excessive
+    technical_annotation_label: "min_3_per_slot" # C0 constraint: minimum 3 callouts
+    material_spec_tag: "max_2_per_slot"     # Primary material + finish typically
+    highlight_label_pill: "max_3_per_slot"  # Limited emphasis points
+
+  positioning_constraints:
+    title_main_pill: "top_center_reserved"  # Always primary position
+    numbered_step_badge: "sequential_flow"  # Must follow logical sequence
+    dimension_card: "grid_arrangement"      # Organized measurement display
+    technical_annotation_label: "callout_endpoints" # Must connect to visual elements
+
+  user_specification_compliance:
+    title_main_pill: "深蓝底白字 — verified"
+    highlight_label_pill: "浅绿底深蓝字 — verified"
+    dimension_card: "白底+深蓝数字+绿色单位 — verified"
+    scene_label_pill: "深蓝底白字 — verified"
