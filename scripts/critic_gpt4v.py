@@ -32,7 +32,7 @@ DEFAULT_CHAT_BASE = "http://193.122.147.249:8317/v1"
 DEFAULT_KEY_FILE = Path.home() / ".config" / "gpt_image_api_key"
 JIEKOU_KEY_FILE = Path.home() / ".config" / "jiekou_api_key"
 CHAT_API_URL = os.environ.get("CRITIC_BASE_URL", DEFAULT_CHAT_BASE).rstrip("/") + "/chat/completions"
-CRITIC_MODEL = os.environ.get("CRITIC_MODEL", "gpt-5.4-mini")
+CRITIC_MODEL = os.environ.get("CRITIC_MODEL", "gpt-5.5")  # upgraded 2026-04-30: gpt-5.4-mini missed scissor deformation + hand anomalies
 
 WEIGHTS = {
     "product_consistency": 0.4,
