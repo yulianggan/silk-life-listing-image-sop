@@ -1,0 +1,216 @@
+# Material Profiles v7 - Realism constraints by material category
+# Programmatic constraints to prevent AI beautification and preserve authentic material quality
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Define material-specific realism rules and forbidden enhancement keywords for each major material category"
+
+# Based on user's hard rule for metals: "金属质感要真实，不要过度镜面化。必须保留铆钉、刻字、刀刃弧度、厚薄比例、边缘细节"
+
+material_profiles:
+  - id: metal
+    aliases: ["stainless_steel", "carbon_steel", "aluminum", "brass", "copper", "titanium", "SK2", "нержавеющая_сталь"]
+    realism_rules:
+      - "禁止 luxury / heirloom / artisan / mirror-finish 等升级词"
+      - "保留: 铆钉、刻字、刃口弧度、厚薄比例、边缘细节"
+      - "材质微距必须包含完整产品小露出（角落 inset），防止局部重画 ≠ 同 SKU"
+      - "光照: soft studio light，不要 dramatic / 镜面反射 / 火花效果"
+      - "表面质感: 保持实际抛光程度，不要过度镜面化处理"
+      - "金属颜色: 保持本色（银白/黄铜色/古铜色），禁止饱和度增强"
+    must_preserve_features:
+      - rivet_pin           # 铆钉
+      - laser_engraving     # 激光刻字
+      - blade_curvature     # 刀刃弧度
+      - thickness_ratio     # 厚薄比例
+      - edge_geometry       # 边缘几何
+      - surface_scratches   # 表面划痕（真实使用痕迹）
+      - manufacturing_marks # 制造标记
+    forbidden_keywords_in_prompt:
+      - luxury
+      - heirloom
+      - artisan
+      - mirror-finish
+      - polished_to_mirror
+      - sparks
+      - gleaming
+      - chrome_shine
+      - jewelry_grade
+      - precious_metal
+    light_palette: ["soft_studio", "north_light", "neutral_grey", "diffused_natural"]
+    texture_enforcement: "Show actual finish quality from sku_truth.material.finish, not idealized version"
+
+  - id: plastic
+    aliases: ["ABS", "PP", "PE", "PC", "TPU", "silicone", "пластик", "силикон"]
+    realism_rules:
+      - "禁止把普通 ABS 画成钢琴漆 / 玻璃质感 / 陶瓷光泽"
+      - "保留: 注塑接缝、表面纹理、品牌 LOGO 浮雕、塑料固有哑光感"
+      - "色泽: 按 SKU 实际颜色，不要饱和度暴涨或透明度增强"
+      - "避免过度光滑化，保持塑料材质本身的质感特点"
+    must_preserve_features:
+      - molding_seam        # 注塑接缝线
+      - surface_texture     # 表面纹理（颗粒感/哑光）
+      - embossed_logo       # 浮雕 LOGO
+      - ejector_pin_marks   # 顶针痕迹
+      - parting_line        # 分型线
+      - material_grain      # 材料本身纹理
+    forbidden_keywords_in_prompt:
+      - glassy
+      - piano-finish
+      - lacquer
+      - jewel-toned
+      - crystal-clear
+      - glass-like
+      - ceramic_smooth
+      - polished_shine
+    light_palette: ["even_diffused", "soft_box", "matte_lighting"]
+    texture_enforcement: "Maintain plastic's inherent surface properties - no artificial glossiness"
+
+  - id: fabric
+    aliases: ["cotton", "linen", "polyester", "flannel", "chiffon", "ткань", "хлопок", "лён"]
+    realism_rules:
+      - "保留: 织纹细节、纤维质感、自然下垂感、边缘处理方式"
+      - "避免过度饱和色彩，保持织物本身的光泽度（哑光/半光/光泽）"
+      - "显示真实的褶皱和垂坠效果，不要过度挺括化"
+      - "织物厚薄感必须与实际 SKU 匹配"
+    must_preserve_features:
+      - weave_pattern       # 织纹图案
+      - fiber_texture       # 纤维纹理
+      - natural_drape       # 自然垂感
+      - edge_finishing      # 边缘处理（锁边/卷边）
+      - fabric_density      # 织物密度
+      - surface_nap         # 绒毛/起毛
+    forbidden_keywords_in_prompt:
+      - silk-like
+      - premium_weave
+      - luxury_textile
+      - high-thread-count
+      - designer_fabric
+      - couture_quality
+    light_palette: ["natural_window", "soft_directional", "textile_booth"]
+    texture_enforcement: "Show actual fabric construction visible in reference images"
+
+  - id: ceramic
+    aliases: ["porcelain", "stoneware", "earthenware", "glaze", "керамика", "фарфор"]
+    realism_rules:
+      - "保留: 釉面质感（光泽/哑光）、窑变痕迹、釉点、底足处理"
+      - "显示实际烧制效果：釉面不均、小气泡、色彩变化"
+      - "工业瓷vs手工瓷区分明确，不要混淆质感层次"
+      - "厚度感要真实，不要过薄或过厚化"
+    must_preserve_features:
+      - glaze_texture       # 釉面质感
+      - kiln_marks         # 窑变痕迹
+      - glaze_bubbles      # 釉面气泡
+      - foot_ring_detail   # 底足细节
+      - ceramic_thickness  # 陶瓷厚度感
+      - surface_irregularities # 表面不规则性
+    forbidden_keywords_in_prompt:
+      - bone_china_quality
+      - museum_grade
+      - artisan_handmade
+      - perfect_glaze
+      - flawless_finish
+      - exhibition_piece
+    light_palette: ["ceramic_studio", "north_facing", "controlled_reflection"]
+    texture_enforcement: "Match actual ceramic grade and finish quality visible in reference"
+
+  - id: glass
+    aliases: ["tempered", "borosilicate", "crystal", "frosted", "стекло", "хрусталь"]
+    realism_rules:
+      - "保留: 透明度层次、玻璃缺陷与气泡、边缘处理质量"
+      - "真实反射和折射效果，不要过度戏剧化"
+      - "显示实际玻璃厚度和重量感"
+      - "工业玻璃vs手工玻璃质感差异要准确"
+    must_preserve_features:
+      - transparency_level  # 透明度层次
+      - glass_defects      # 玻璃缺陷（正常工艺范围内）
+      - air_bubbles        # 气泡
+      - edge_quality       # 边缘处理质量
+      - thickness_variation # 厚度变化
+      - stress_patterns    # 应力纹
+    forbidden_keywords_in_prompt:
+      - crystal_clear_perfection
+      - flawless_transparency
+      - diamond_clarity
+      - optical_grade
+      - laboratory_quality
+      - pristine_surface
+    light_palette: ["backlit_diffused", "edge_lighting", "controlled_studio"]
+    texture_enforcement: "Show actual glass quality grade - industrial vs precision vs handmade"
+
+  - id: electronic
+    aliases: ["LCD", "OLED", "plastic_housing", "metal_chassis", "электроника", "дисплей"]
+    realism_rules:
+      - "屏幕内容必须真实或留空，禁画虚假 UI / 过度科幻效果"
+      - "按键、接口、指示灯保持实际产品规格"
+      - "外壳材质（塑料/金属）按实际显示，不要混材质"
+      - "避免添加未实际存在的 RGB 灯效或发光效果"
+    must_preserve_features:
+      - screen_bezel       # 屏幕边框
+      - button_layout      # 按键布局
+      - port_configuration # 接口配置
+      - housing_material   # 外壳材质
+      - indicator_lights   # 指示灯位置
+      - surface_texture    # 表面处理纹理
+    forbidden_keywords_in_prompt:
+      - glowing_aura
+      - futuristic_ui
+      - sci-fi_glow
+      - holographic_display
+      - neon_effects
+      - cyberpunk_aesthetic
+    light_palette: ["product_photography", "minimal_reflections", "even_exposure"]
+    texture_enforcement: "Match actual electronic device grade - consumer vs industrial vs professional"
+
+  - id: paper_wood
+    aliases: ["cardboard", "kraft", "MDF", "plywood", "solid_wood", "бумага", "картон", "дерево"]
+    realism_rules:
+      - "纸类: 显示纤维纹理、边缘粗糙度、实际厚度感"
+      - "木材: 保留木纹方向、节疤、色差、表面处理痕迹"
+      - "复合材料显示层次结构，不要画成实木"
+      - "避免过度美化纹理，保持工业级 vs 家具级区别"
+    must_preserve_features:
+      - fiber_direction    # 纤维/木纹方向
+      - surface_roughness  # 表面粗糙度
+      - edge_quality      # 边缘处理质量
+      - natural_defects   # 自然缺陷（节疤、裂纹）
+      - layer_structure   # 层次结构（复合材料）
+      - finish_coating    # 表面涂层效果
+    forbidden_keywords_in_prompt:
+      - premium_hardwood
+      - furniture_grade
+      - exhibition_quality
+      - hand_selected_grain
+      - museum_archival
+      - luxury_veneer
+    light_palette: ["warm_natural", "wood_studio", "grain_revealing"]
+    texture_enforcement: "Show actual wood/paper grade quality - construction vs furniture vs craft grade"
+
+# === INTEGRATION RULES ===
+material_profile_loading:
+  trigger: "When sku_truth.material.primary matches any profile aliases"
+  enforcement_points:
+    - "prompt_construction: Add realism_rules as negative prompts"
+    - "critic_validation: Check must_preserve_features in generated image"
+    - "keyword_filtering: Block forbidden_keywords_in_prompt before generation"
+    - "lighting_constraints: Apply light_palette restrictions"
+
+cross_material_rules:
+  multi_material_products:
+    policy: "Apply ALL relevant profiles (metal + plastic for multi-material SKU)"
+    conflict_resolution: "Most restrictive rule wins"
+
+  unknown_materials:
+    fallback: "Apply generic anti-beautification rules from product_grade_anchor"
+    escalation: "Log warning for manual material profile creation"
+
+validation_chain:
+  pre_generation:
+    1: "Load material profile for sku_truth.material.primary"
+    2: "Apply realism_rules as prompt constraints"
+    3: "Filter out forbidden_keywords_in_prompt"
+    4: "Set appropriate light_palette"
+
+  post_generation:
+    1: "Critic checks must_preserve_features"
+    2: "Verify no forbidden keywords appeared in final image"
+    3: "Validate texture_enforcement compliance"

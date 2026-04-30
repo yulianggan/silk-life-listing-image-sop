@@ -1,0 +1,208 @@
+# Anti-Fabrication Critic Dimensions v7
+# 4 new critic dimensions to prevent AI invention and enforce fact-based constraints
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Extend critic_gpt4v.py with 4 new dimensions beyond current 5 (product_consistency, cyrillic_render, visual_hierarchy, ctr_risk, slot_compliance)"
+
+# User's 5 hard rules mapping to new critic dimensions:
+# Rule 1: Real product fidelity → metal_realism (material-specific)
+# Rule 2: Packaging needs real reference → package_authenticity
+# Rule 3: Dimensions from facts only → dimension_provenance
+# Rule 4: Use cases from SKU only → use_case_provenance
+# Rule 5: Each image = 1 question → (already handled by existing slot_compliance)
+
+new_critic_dimensions:
+  - id: package_authenticity
+    description: "包装出现时必须有真实参考图"
+    purpose: "Prevent AI from inventing fake packaging, boxes, labels, or branding elements"
+    scoring_criteria:
+      10: "No packaging elements shown OR all packaging matches real reference images exactly"
+      8-9: "Packaging shown with minor variations from reference (acceptable artistic liberty)"
+      6-7: "Packaging elements present but some details don't match reference"
+      4-5: "Clear packaging invention - boxes/labels/text not in reference images"
+      0-3: "Completely fabricated packaging or branding elements"
+
+    failure_signals:
+      - "图中出现包装盒/礼盒/吊牌/品牌 logo，但 sku_truth.packaging.has_real_reference_image=false"
+      - "包装文字与 sku_truth.packaging.box_text_observed 不匹配"
+      - "包装颜色与 sku_truth.packaging.box_color_observed 差异过大"
+      - "出现了 packaging.reference_files 中未包含的品牌元素"
+
+    hard_threshold: 8.0
+    blocked_slots: ["unboxing-scene", "packaging-focus", "quantity-pack"]
+    sku_truth_dependency: "packaging.has_real_reference_image"
+    enforcement_logic: |
+      if sku_truth.packaging.has_real_reference_image == false:
+          # Any packaging elements in image = automatic violation
+          scan_for: ["boxes", "labels", "brand_logos", "package_text"]
+          if found: score = 0
+      else:
+          # Compare against packaging.reference_files and box_text_observed
+          validate_packaging_accuracy()
+
+  - id: dimension_provenance
+    description: "尺寸数字必须来自 SKU 事实"
+    purpose: "Prevent AI from inventing measurements, sizes, or numerical specifications"
+    scoring_criteria:
+      10: "No dimensions shown OR all numbers match sku_truth.dimensions exactly"
+      8-9: "Dimensions shown with minor rounding (e.g., 123mm → 12.3cm acceptable)"
+      6-7: "Some dimensions match, others are close approximations"
+      4-5: "Clear numerical invention - dimensions not in sku_truth.dimensions"
+      0-3: "Completely fabricated measurements or impossible size claims"
+
+    failure_signals:
+      - "图中渲染了毫米数 / 容量 / 数量，但对应 sku_truth.dimensions.{field}.source 为空或为 model_invented"
+      - "数值与 sku_truth.dimensions.* 字段不匹配（允许 ±5% 转换误差）"
+      - "出现了未在 sku_truth 中记录的技术规格数字"
+      - "显示了重量/容量但 sku_truth 对应字段为 null"
+
+    hard_threshold: 8.0
+    blocked_slots: ["size-spec", "technical-specs", "measurement-guide"]
+    sku_truth_dependency: "dimensions.source"
+    enforcement_logic: |
+      extract_numbers_from_image()  # OCR all visible numbers
+      for each_number in image_numbers:
+          match_found = False
+          for dimension_field in sku_truth.dimensions:
+              if dimension_field.value and dimension_field.source != "model_invented":
+                  if fuzzy_match(each_number, dimension_field.value, tolerance=0.05):
+                      match_found = True
+                      break
+          if not match_found:
+              score -= 2  # -2 points per invented number
+
+  - id: use_case_provenance
+    description: "用途必须来自 SKU"
+    purpose: "Prevent AI from inventing usage scenarios not documented in sku_truth.use_cases"
+    scoring_criteria:
+      10: "No usage shown OR all scenarios match documented use_cases exactly"
+      8-9: "Usage scenarios clearly derived from documented use_cases with minor artistic variation"
+      6-7: "Some scenarios match, others are reasonable extensions"
+      4-5: "Clear usage invention - scenarios not traceable to sku_truth.use_cases"
+      0-3: "Completely fabricated usage contexts or impossible applications"
+
+    failure_signals:
+      - "scene-grid / steps 渲染的用途不在 sku_truth.use_cases 列表中"
+      - "俄语用途文字无法 fuzzy-match 到任何 use_cases[].case_ru"
+      - "显示了明显超出产品能力范围的使用场景"
+      - "lifestyle 场景与所有已记录 use_cases 都不相关"
+
+    hard_threshold: 8.0
+    blocked_slots: ["scene-grid", "steps-123", "use-proof", "lifestyle-context"]
+    sku_truth_dependency: "use_cases[].case_ru"
+    enforcement_logic: |
+      extract_usage_context_from_image()  # Identify depicted usage scenarios
+      extract_russian_text_from_image()   # OCR Cyrillic text describing usage
+      for each_scenario in image_scenarios:
+          match_found = False
+          for documented_case in sku_truth.use_cases:
+              if fuzzy_match_russian(each_scenario, documented_case.case_ru, threshold=0.7):
+                  match_found = True
+                  break
+          if not match_found:
+              score -= 2  # -2 points per undocumented usage scenario
+
+  - id: metal_realism
+    description: "金属真实质感 + 关键特征保留"
+    purpose: "Enforce metal-specific realism constraints from user's hard rule #6"
+    activation_condition: "ONLY when sku_truth.material.primary contains metal keywords"
+    scoring_criteria:
+      10: "Perfect metal realism - all must_preserve_features visible, no forbidden upgrades"
+      8-9: "Excellent metal quality - minor artistic liberty but key features preserved"
+      6-7: "Good metal rendering - most features preserved, minimal enhancement"
+      4-5: "Over-enhanced metal - some key features lost or artificially upgraded"
+      0-3: "Fake metal look - luxury enhancement, missing critical features"
+
+    failure_signals:
+      - "出现 luxury / mirror-finish / artisan 等 forbidden_keywords"
+      - "缺失 must_preserve_features: 铆钉/刻字/刃口弧度/厚薄比例/边缘细节"
+      - "过度镜面化处理，不符合实际产品等级"
+      - "材质微距图缺少完整产品小露出（违反同 SKU 识别要求）"
+      - "光照过于戏剧化（sparks / dramatic lighting / 镜面反射）"
+
+    hard_threshold: 8.0
+    blocked_slots: ["hero-identification", "material-macro", "product-callouts", "angle-variant"]
+    sku_truth_dependency: "material.primary + material.finish"
+    activation_keywords: ["metal", "steel", "stainless", "aluminum", "brass", "titanium", "нержавеющая", "сталь"]
+    enforcement_logic: |
+      if not any(keyword in sku_truth.material.primary.lower() for keyword in activation_keywords):
+          return 10  # N/A for non-metal products
+
+      # Load material profile for this metal type
+      metal_profile = load_material_profile(sku_truth.material.primary)
+
+      # Check forbidden keywords presence
+      forbidden_detected = scan_image_for_keywords(metal_profile.forbidden_keywords)
+      if forbidden_detected:
+          score -= len(forbidden_detected) * 2
+
+      # Check must_preserve_features
+      preserved_features = check_feature_preservation(metal_profile.must_preserve_features)
+      missing_features = len(metal_profile.must_preserve_features) - len(preserved_features)
+      score -= missing_features * 1.5
+
+      # Check finish quality matches sku_truth.material.finish
+      finish_match = validate_finish_quality(sku_truth.material.finish)
+      if not finish_match:
+          score -= 3
+
+# === INTEGRATION WITH EXISTING CRITIC SYSTEM ===
+critic_integration:
+  current_dimensions: 5
+  new_dimensions: 4
+  total_dimensions: 9
+
+  weighted_scoring:
+    # Keep existing weights for main 4 dimensions
+    product_consistency: 0.4
+    cyrillic_render: 0.25
+    visual_hierarchy: 0.2
+    ctr_risk: 0.15
+    # New dimensions as hard gates (not weighted)
+    package_authenticity: "hard_gate"
+    dimension_provenance: "hard_gate"
+    use_case_provenance: "hard_gate"
+    metal_realism: "hard_gate"
+    # Existing hard gate
+    slot_compliance: "hard_gate"
+
+  pass_criteria:
+    weighted_score: ">= 7.5"
+    hard_gates: "ALL hard_gate dimensions >= 8.0"
+    critical_gates: "product_consistency >= 8.0"  # Existing critical gate
+
+  failure_modes:
+    weighted_below_threshold: "Regenerate with aesthetic improvements"
+    hard_gate_violation: "Block generation until fact constraints met"
+    critical_gate_violation: "Product mismatch - check reference image"
+
+# === DATA FLOW REQUIREMENTS ===
+critic_data_inputs:
+  existing_inputs:
+    - generated_image_path
+    - reference_image_path
+    - slot_id
+
+  new_required_inputs:
+    - sku_truth_object  # Full sku_truth data structure
+    - material_profile  # Loaded from c1_material_profiles.yaml
+
+  input_validation:
+    - "sku_truth must contain all required fields for active dimensions"
+    - "material_profile loaded only if material.primary matches known categories"
+    - "Dimensions auto-disable if required sku_truth fields missing"
+
+# === ERROR HANDLING ===
+dimension_error_policies:
+  missing_sku_truth_field:
+    action: "AUTO_DISABLE_DIMENSION"
+    message: "Dimension {dimension_id} disabled - missing sku_truth.{field_name}"
+
+  invalid_material_category:
+    action: "SKIP_METAL_REALISM"
+    message: "metal_realism skipped - material '{material}' not in metal categories"
+
+  ocr_extraction_failure:
+    action: "CONSERVATIVE_SCORE"
+    message: "Cannot extract text/numbers - scoring conservatively as potential violation"
