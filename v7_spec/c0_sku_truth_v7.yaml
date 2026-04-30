@@ -1,0 +1,323 @@
+# SKU Truth Ledger v7 - Fact-based constraints enforcer
+# Every v7 prompt construction MUST fill required fields, missing fields = BLOCK generation
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Enforce user's 5 hard rules through mandatory fact verification before slot generation"
+
+# Hard Rule Mapping:
+# Rule 1: Real product fidelity > beautification → product_grade_anchor prevents upgrades
+# Rule 2: Packaging needs real reference → packaging.has_real_reference_image blocks fake packaging
+# Rule 3: Dimensions from facts only → dimensions.source tracks fact provenance
+# Rule 4: Use cases from SKU only → use_cases.source enforces traceability
+# Rule 5: Each image = 1 question → slot_question_v7.yaml forbidden_cross_topics enforcement
+
+sku_truth:
+  # === CORE IDENTITY (Required for ALL slots) ===
+  identity:
+    sku_id:
+      type: string
+      required: true
+      description: "Unique SKU identifier"
+      example: "SILK_BEAUTY_KNIFE_001"
+
+    product_name_ru:
+      type: string
+      required: true
+      description: "Official Russian product name as appears in listing"
+      validation: "Must be exact match from listing title/description"
+      example: "Строительный нож для обоев"
+
+    category:
+      type: string
+      required: true
+      enum: ["tools", "kitchen", "home_storage", "cosmetics", "electronics", "fashion_accessories"]
+      description: "Primary product category for constraint loading"
+
+    archetype:
+      type: string
+      required: true
+      enum: ["office_craft", "grooming_tool", "kitchen_prep", "home_storage", "beauty_care", "small_electronics", "fashion_accessory"]
+      description: "Specific product archetype for template selection"
+      example: "office_craft"
+
+  # === DIMENSIONAL FACTS (Required for size-spec slot) ===
+  dimensions:
+    length_mm:
+      type: number
+      nullable: true
+      description: "Product length in millimeters"
+      source_required: true
+
+    width_mm:
+      type: number
+      nullable: true
+      description: "Product width in millimeters"
+      source_required: true
+
+    height_mm:
+      type: number
+      nullable: true
+      description: "Product height in millimeters"
+      source_required: true
+
+    blade_length_mm:
+      type: number
+      nullable: true
+      description: "Blade/cutting edge length (tools category only)"
+      source_required: true
+
+    weight_g:
+      type: number
+      nullable: true
+      description: "Product weight in grams"
+      source_required: true
+
+    source:
+      type: string
+      required: true
+      enum: ["listing_xlsx", "manual_input", "sku_field", "comm_image_measurement"]
+      description: "WHERE the dimensional data came from - prevents AI guessing"
+      validation_note: "If source='listing_xlsx', must reference specific cell/column"
+
+    # Slot generation rules
+    blocking_policy:
+      size_spec_slot: "BLOCKED if ALL dimension fields are null"
+      numeric_overlays: "BLOCKED if source is missing or null values used"
+
+  # === QUANTITY FACTS (Required for packaging slot) ===
+  quantity:
+    units_per_pack:
+      type: integer
+      required: true
+      description: "Number of individual units in one package"
+      example: 1
+
+    pieces_per_unit:
+      type: integer
+      required: true
+      description: "Number of pieces that make up one unit"
+      example: 1
+
+    source:
+      type: string
+      required: true
+      enum: ["listing_title", "listing_description", "sku_field", "manual_count"]
+      description: "Source of quantity information"
+
+    # Slot generation rules
+    blocking_policy:
+      packaging_slot: "BLOCKED if units_per_pack or pieces_per_unit missing"
+      quantity_overlays: "BLOCKED if source not specified"
+
+  # === MATERIAL FACTS (Required for material-macro slot) ===
+  material:
+    primary:
+      type: string
+      required: true
+      description: "Primary material name in Russian/technical terms"
+      example: "нержавеющая сталь SK2"
+      validation: "Must match listing description or technical spec"
+
+    finish:
+      type: string
+      required: true
+      description: "Surface finish/treatment"
+      example: "полированная"
+      enum: ["полированная", "матовая", "шлифованная", "анодированная", "покрытие"]
+
+    hardness_rating:
+      type: string
+      nullable: true
+      description: "Material hardness (for tools/blades)"
+      example: "HRC 58-60"
+
+    source:
+      type: string
+      required: true
+      enum: ["listing_features", "technical_spec", "manual_input", "comm_image_text"]
+      description: "Source of material information"
+
+    # Slot generation rules
+    blocking_policy:
+      material_macro_slot: "BLOCKED if primary or finish is null"
+      material_overlays: "BLOCKED if source not specified"
+
+  # === USE CASE FACTS (Required for scenario/use slots) ===
+  use_cases:
+    type: array
+    required: true
+    minimum_items: 1
+    items:
+      type: object
+      properties:
+        case_ru:
+          type: string
+          required: true
+          description: "Russian usage scenario exactly as appears in source"
+          example: "для обрезки обоев"
+
+        case_zh:
+          type: string
+          required: true
+          description: "Chinese translation of usage scenario"
+          example: "用于裁切壁纸"
+
+        source:
+          type: string
+          required: true
+          enum: ["listing_title", "listing_features", "comm_image_file", "manual_input"]
+          description: "Exact source where this use case was mentioned"
+          validation: "If comm_image_file, must specify filename"
+
+        context:
+          type: string
+          nullable: true
+          description: "Additional context from source (optional)"
+
+    # Slot generation rules
+    blocking_policy:
+      scenario_slots: "BLOCKED if use_cases array is empty"
+      use_proof_slot: "BLOCKED if no traceable use cases exist"
+      lifestyle_scenes: "Can ONLY generate scenarios from listed use_cases"
+
+  # === PACKAGING FACTS (Required for unboxing slot) ===
+  packaging:
+    has_real_reference_image:
+      type: boolean
+      required: true
+      description: "TRUE = real packaging photos exist, FALSE = no packaging reference"
+
+    reference_files:
+      type: array
+      items:
+        type: string
+        description: "Path to actual packaging reference image"
+      validation: "All paths must exist and be accessible"
+      example: ["/path/to/box_front.jpg", "/path/to/box_back.jpg"]
+
+    box_color_observed:
+      type: string
+      nullable: true
+      description: "Actual box color from reference images"
+      validation: "Only fill if has_real_reference_image=true"
+
+    box_text_observed:
+      type: string
+      nullable: true
+      description: "Russian text actually printed on real packaging"
+      validation: "Must be verbatim from reference images"
+
+    brand_logo_present:
+      type: boolean
+      required: true
+      description: "Whether brand logo appears on packaging"
+
+    # Slot generation rules
+    blocking_policy:
+      unboxing_slot: "BLOCKED if has_real_reference_image=false"
+      packaging_generation: "FORBIDDEN to invent packaging without reference_files"
+      fake_branding: "FORBIDDEN to generate logos/text not in box_text_observed"
+
+  # === PRODUCT GRADE ANCHOR (Prevents beautification upgrades) ===
+  product_grade_anchor:
+    market_segment:
+      type: string
+      required: true
+      enum: ["budget", "mid-range", "premium"]
+      description: "Market positioning based on price point in listing"
+      derivation: "Auto-calculated from listing price vs. category average"
+
+    finish_quality_observed:
+      type: string
+      required: true
+      enum: ["basic", "standard", "fine", "industrial"]
+      description: "Actual finish quality visible in reference images"
+      validation: "Must match what's visible in comm images, not aspirational"
+
+    forbidden_upgrade_keywords:
+      type: array
+      required: true
+      items:
+        type: string
+      description: "Words/concepts BANNED from prompts to prevent artificial upgrading"
+      default: ["luxury", "premium", "heirloom", "artisan", "professional-grade", "high-end", "deluxe"]
+      customizable: true
+
+    upgrade_constraints:
+      brightness: "Allow +20% max brightness enhancement"
+      sharpness: "Allow clarity improvement, NOT edge refinement"
+      texture: "Show actual material texture, NOT idealized version"
+      color: "Match reference colors ±10%, NOT enhanced saturation"
+
+    # Slot generation rules
+    blocking_policy:
+      all_slots: "FORBIDDEN to use forbidden_upgrade_keywords in prompts"
+      material_macro: "Must show actual finish_quality_observed level"
+      hero_slots: "Must maintain market_segment appropriate visual treatment"
+
+# === VALIDATION CHAIN ===
+validation_sequence:
+  pre_generation_checks:
+    1: "Verify identity fields complete"
+    2: "Check required fields for target slot exist"
+    3: "Validate all source attributions are traceable"
+    4: "Confirm no forbidden_upgrade_keywords in prompt"
+    5: "Block generation if any requirements unmet"
+
+  post_generation_validation:
+    1: "Verify generated content matches sku_truth constraints"
+    2: "Check no cross-topic contamination occurred"
+    3: "Validate factual accuracy against source data"
+
+# === ERROR HANDLING ===
+error_policies:
+  missing_required_field:
+    action: "BLOCK_SLOT_GENERATION"
+    message: "Required field {field_name} missing for slot {slot_id}"
+
+  invalid_source_attribution:
+    action: "BLOCK_SLOT_GENERATION"
+    message: "Source '{source}' not traceable or invalid for field {field_name}"
+
+  upgrade_keyword_detected:
+    action: "BLOCK_PROMPT_CONSTRUCTION"
+    message: "Forbidden upgrade keyword '{keyword}' detected in slot {slot_id}"
+
+  reference_file_missing:
+    action: "BLOCK_PACKAGING_SLOT"
+    message: "Packaging reference file {filename} not found or inaccessible"
+
+# === SLOT BLOCKING MATRIX ===
+slot_blocking_rules:
+  hero_identification:
+    requires: ["identity.*"]
+    blocks_if_missing: ["Cannot identify product without core identity"]
+
+  size_spec:
+    requires: ["dimensions.*", "dimensions.source"]
+    blocks_if_missing: ["Cannot show dimensions without factual measurements"]
+
+  material_macro:
+    requires: ["material.primary", "material.finish", "material.source"]
+    blocks_if_missing: ["Cannot show material details without material facts"]
+
+  product_callouts:
+    requires: ["identity.*", "use_cases[0..n]"]
+    blocks_if_missing: ["Cannot create callouts without use case context"]
+
+  unboxing_scene:
+    requires: ["packaging.has_real_reference_image=true", "packaging.reference_files"]
+    blocks_if_missing: ["Cannot generate packaging without real reference images"]
+
+  use_proof:
+    requires: ["use_cases[0..n]", "use_cases[*].source"]
+    blocks_if_missing: ["Cannot demonstrate usage without documented use cases"]
+
+  safety_certification:
+    requires: ["identity.category", "product_grade_anchor.market_segment"]
+    blocks_if_missing: ["Cannot show safety features without category context"]
+
+  angle_variant:
+    requires: ["identity.*"]
+    blocks_if_missing: ["Cannot show alternative view without product identity"]

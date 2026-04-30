@@ -1,0 +1,398 @@
+# Slot Question Mapping v7 - 7 buyer questions → 7-8 slots
+# Enforces user rule: "Each image answers only one buyer question"
+
+version: "7.0"
+created: "2026-04-30"
+purpose: "Map 7 core Russian buyer questions to slot generation with strict cross-topic isolation"
+
+# Core Design: Each slot ONLY answers its designated question, forbidden from answering others
+# Based on user's exact 7-question list with cross-contamination prevention
+
+buyer_decision_journey:
+  sequence: [
+    "Что это?",           # What is it?
+    "Какого размера?",    # How big?
+    "Из чего сделано?",   # What material?
+    "Как устроено?",      # How is it built?
+    "Для чего годится?",  # What is it good for?
+    "Как использовать?",  # How to use?
+    "Почему стоит купить?" # Why trust buying?
+  ]
+
+slots:
+  # === SLOT 1: HERO IDENTIFICATION ===
+  - slot_id: "hero-identification"
+    slot_order: 1
+    buyer_question_ru: "Что это?"
+    buyer_question_zh: "这是什么"
+    evidence_type: "identification"
+
+    purpose: "Product recognition and basic category understanding"
+
+    required_from_sku_truth:
+      - "identity.product_name_ru"
+      - "identity.category"
+      - "identity.archetype"
+
+    allowed_evidence_elements:
+      - "product_silhouette"
+      - "brand_identification"
+      - "category_recognition"
+      - "basic_form_factor"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_texture_detail"   # This is material-macro's job
+      - "usage_scenarios"           # This is use-proof's job
+      - "packaging_contents"        # This is unboxing-scene's job
+      - "structural_callouts"       # This is product-callouts's job
+      - "safety_certifications"    # This is safety-trust's job
+
+    composition_constraints:
+      hands_allowed: false
+      lifestyle_props: false
+      background: "clean_studio_only"
+      product_canvas_ratio: [0.55, 0.65]
+      text_overlay_max_lines: 2
+
+  # === SLOT 2: SIZE SPECIFICATION ===
+  - slot_id: "size-spec"
+    slot_order: 2
+    buyer_question_ru: "Какого размера?"
+    buyer_question_zh: "多大"
+    evidence_type: "dimensional"
+
+    purpose: "Precise size understanding with measurement context"
+
+    required_from_sku_truth:
+      - "dimensions.*"
+      - "dimensions.source"
+
+    blocking_conditions:
+      - "BLOCKED if dimensions.* all null"
+      - "BLOCKED if dimensions.source missing"
+
+    allowed_evidence_elements:
+      - "measurement_overlays"
+      - "reference_scale_objects"
+      - "dimension_callouts"
+      - "size_comparison"
+
+    forbidden_cross_topics:
+      - "usage_demonstrations"      # This is use-proof's job
+      - "material_close_ups"        # This is material-macro's job
+      - "lifestyle_contexts"        # Avoid scene contamination
+      - "hands_in_frame"           # Size-only, no hands
+      - "structural_explanations"   # This is product-callouts's job
+      - "packaging_elements"        # This is unboxing-scene's job
+
+    composition_constraints:
+      hands_allowed: false
+      background: "clean_neutral_only"
+      measurement_reference_required: true
+      text_overlay_max_lines: 2
+      reference_objects: ["coins", "rulers", "credit_cards", "standard_objects"]
+
+  # === SLOT 3: MATERIAL EVIDENCE ===
+  - slot_id: "material-macro"
+    slot_order: 3
+    buyer_question_ru: "Из чего сделано?"
+    buyer_question_zh: "什么材质"
+    evidence_type: "material_quality"
+
+    purpose: "Material composition and quality verification"
+
+    required_from_sku_truth:
+      - "material.primary"
+      - "material.finish"
+      - "material.source"
+
+    blocking_conditions:
+      - "BLOCKED if material.primary null"
+      - "BLOCKED if material.source missing"
+
+    allowed_evidence_elements:
+      - "material_texture_macro"
+      - "surface_finish_detail"
+      - "hardness_indicators"
+      - "quality_markers"
+      - "material_grade_stamps"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "usage_demonstrations"      # This is use-proof's job
+      - "complete_product_views"    # This is hero/callouts job
+      - "packaging_context"         # This is unboxing-scene's job
+      - "lifestyle_scenes"          # Material focus only
+      - "hands_in_frame"           # Macro photography only
+
+    composition_constraints:
+      hands_allowed: false
+      shot_type: "extreme_close_up_macro"
+      background: "neutral_blur_or_solid"
+      text_overlay_max_lines: 2
+      focus_area: "material_surface_details"
+
+  # === SLOT 4: STRUCTURAL CALLOUTS ===
+  - slot_id: "product-callouts"
+    slot_order: 4
+    buyer_question_ru: "Как устроено?"
+    buyer_question_zh: "哪里好用"
+    evidence_type: "structural_design"
+
+    purpose: "Product construction and component explanation"
+
+    required_from_sku_truth:
+      - "identity.category"
+      - "use_cases[0..n]"  # Need use context for meaningful callouts
+
+    allowed_evidence_elements:
+      - "component_callouts"
+      - "structural_annotations"
+      - "assembly_indicators"
+      - "functional_highlights"
+      - "design_features"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_macro_details"    # This is material-macro's job
+      - "usage_demonstrations"      # This is use-proof's job
+      - "packaging_contents"        # This is unboxing-scene's job
+      - "hands_in_frame"           # Clean technical view only
+      - "lifestyle_contexts"        # Technical focus only
+
+    composition_constraints:
+      hands_allowed: false
+      complete_product_visible: true
+      callout_minimum: 3
+      background: "clean_technical"
+      text_overlay_max_lines: 2
+      annotation_style: "technical_precise"
+
+  # === SLOT 5: USE PROOF / SCENARIO ===
+  - slot_id: "use-proof"
+    slot_order: 5
+    buyer_question_ru: "Для чего годится?"
+    buyer_question_zh: "适合什么"
+    evidence_type: "usage_scenarios"
+
+    purpose: "Valid usage context demonstration (ONLY from documented use_cases)"
+
+    required_from_sku_truth:
+      - "use_cases[0..n]"
+      - "use_cases[*].source"  # Must be traceable
+
+    blocking_conditions:
+      - "BLOCKED if use_cases array empty"
+      - "BLOCKED if any use_case.source missing"
+
+    allowed_evidence_elements:
+      - "documented_usage_scenarios"  # ONLY from use_cases list
+      - "appropriate_context_props"
+      - "realistic_applications"
+      - "environment_suitable_to_use_case"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_macro_details"    # This is material-macro's job
+      - "structural_callouts"       # This is product-callouts's job
+      - "packaging_elements"        # This is unboxing-scene's job
+      - "invented_use_cases"        # ONLY use documented use_cases
+      - "safety_certifications"    # This is safety-trust's job
+
+    composition_constraints:
+      hands_allowed: false  # Scenario context, not hand-holding demo
+      usage_source_restriction: "ONLY_from_sku_truth.use_cases"
+      lifestyle_scene_budget: 1  # Max 1 lifestyle scene in entire 8-image set
+      background: "contextual_to_use_case"
+      text_overlay_max_lines: 2
+
+  # === SLOT 6: USAGE DEMONSTRATION ===
+  - slot_id: "usage-demo"
+    slot_order: 6
+    buyer_question_ru: "Как использовать?"
+    buyer_question_zh: "怎么用"
+    evidence_type: "operation_proof"
+
+    purpose: "Actual usage demonstration with hands (structure must remain visible)"
+
+    required_from_sku_truth:
+      - "use_cases[0..n]"  # Need documented use cases for demo
+
+    allowed_evidence_elements:
+      - "hands_demonstrating_use"
+      - "operation_in_progress"
+      - "results_of_use"
+      - "proper_handling_technique"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_macro_details"    # This is material-macro's job
+      - "structural_callouts"       # This is product-callouts's job
+      - "packaging_contents"        # This is unboxing-scene's job
+      - "hands_blocking_structure"  # User rule: hands cannot block key structure
+
+    composition_constraints:
+      hands_allowed: true  # ONLY slot where hands are allowed
+      hands_blocking_structure: false  # Critical constraint
+      visible_results_required: true
+      background: "contextual_but_clean"
+      text_overlay_max_lines: 2
+      hand_positioning: "structure_not_blocked"
+
+  # === SLOT 7: UNBOXING / PACKAGING ===
+  - slot_id: "unboxing-scene"
+    slot_order: 7
+    buyer_question_ru: "Что в комплекте?"
+    buyer_question_zh: "包装里都包含什么"
+    evidence_type: "packaging_contents"
+
+    purpose: "Package contents and included items verification"
+
+    required_from_sku_truth:
+      - "packaging.has_real_reference_image=true"
+      - "packaging.reference_files[0..n]"
+      - "quantity.units_per_pack"
+      - "quantity.pieces_per_unit"
+
+    blocking_conditions:
+      - "BLOCKED if packaging.has_real_reference_image=false"
+      - "BLOCKED if packaging.reference_files empty"
+
+    allowed_evidence_elements:
+      - "real_packaging_elements"  # ONLY from reference_files
+      - "complete_contents_layout"
+      - "quantity_verification"
+      - "included_accessories"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_macro_details"    # This is material-macro's job
+      - "usage_demonstrations"      # This is use-proof's job
+      - "structural_callouts"       # This is product-callouts's job
+      - "invented_packaging"        # ONLY real packaging allowed
+      - "fake_branding"            # ONLY real box_text_observed allowed
+
+    composition_constraints:
+      hands_allowed: false
+      packaging_source: "real_reference_only"
+      layout_style: "organized_grid"
+      background: "clean_unboxing_surface"
+      text_overlay_max_lines: 2
+      branding_constraint: "only_observed_elements"
+
+  # === SLOT 8: TRUST / SAFETY (Optional 8th slot) ===
+  - slot_id: "safety-trust"
+    slot_order: 8
+    buyer_question_ru: "Почему стоит купить?"
+    buyer_question_zh: "为什么放心买"
+    evidence_type: "trust_indicators"
+
+    purpose: "Safety certifications, quality indicators, trust signals"
+    optional: true  # 7-slot minimum, 8th slot for completeness
+
+    required_from_sku_truth:
+      - "product_grade_anchor.market_segment"
+      - "identity.category"
+
+    allowed_evidence_elements:
+      - "safety_certifications"
+      - "quality_marks"
+      - "compliance_indicators"
+      - "brand_trust_elements"
+      - "warranty_indicators"
+
+    forbidden_cross_topics:
+      - "dimensional_measurements"  # This is size-spec's job
+      - "material_macro_details"    # This is material-macro's job
+      - "usage_demonstrations"      # This is use-proof's job
+      - "structural_callouts"       # This is product-callouts's job
+      - "packaging_contents"        # This is unboxing-scene's job
+      - "lifestyle_contexts"        # Trust focus only
+
+    composition_constraints:
+      hands_allowed: false
+      focus_type: "certification_marks"
+      background: "clean_professional"
+      text_overlay_max_lines: 2
+      trust_element_minimum: 2
+
+# === CROSS-TOPIC CONTAMINATION PREVENTION ===
+cross_topic_isolation:
+  principle: "Each slot answers ONLY its buyer_question, never bleeds into others"
+
+  enforcement_rules:
+    - "size-spec cannot show material details"
+    - "material-macro cannot show dimensions"
+    - "product-callouts cannot demonstrate usage"
+    - "use-proof cannot show size measurements"
+    - "usage-demo cannot include material close-ups"
+    - "unboxing-scene cannot show usage scenarios"
+    - "safety-trust cannot show structural details"
+    - "hero-identification cannot answer specific questions (size/material/use)"
+
+  violation_detection:
+    method: "automatic_prompt_analysis"
+    blocked_combinations:
+      - ["size_measurement", "material_macro"]
+      - ["usage_demonstration", "dimensional_callouts"]
+      - ["material_texture", "packaging_layout"]
+      - ["structural_annotation", "usage_scenario"]
+
+# === SLOT DISTRIBUTION ANALYSIS ===
+slot_distribution:
+  total_slots: 8
+  mandatory_slots: 7  # First 7 questions are mandatory
+  optional_slots: 1   # safety-trust can be omitted for 7-slot sets
+
+  by_evidence_type:
+    identification: 1     # hero-identification
+    dimensional: 1        # size-spec
+    material_quality: 1   # material-macro
+    structural_design: 1  # product-callouts
+    usage_scenarios: 1    # use-proof
+    operation_proof: 1    # usage-demo
+    packaging_contents: 1 # unboxing-scene
+    trust_indicators: 1   # safety-trust (optional)
+
+  by_hands_policy:
+    hands_forbidden: 7    # All except usage-demo
+    hands_allowed: 1      # usage-demo only (with structure-not-blocked rule)
+    hands_blocking_structure: 0  # NEVER allowed to block structure
+
+  by_complexity_level:
+    simple_studio: 3      # hero-identification, size-spec, safety-trust
+    technical_evidence: 3 # material-macro, product-callouts, unboxing-scene
+    active_demonstration: 2 # use-proof, usage-demo
+
+# === VALIDATION CHAIN ===
+slot_validation:
+  pre_generation:
+    1: "Check slot's required_from_sku_truth fields exist"
+    2: "Verify no blocking_conditions are met"
+    3: "Confirm allowed_evidence_elements are available"
+    4: "Check forbidden_cross_topics not in prompt"
+
+  post_generation:
+    1: "Verify slot only answers its designated buyer_question"
+    2: "Check no forbidden cross-topic elements present"
+    3: "Validate composition_constraints compliance"
+    4: "Confirm evidence matches required sku_truth data"
+
+# === ERROR HANDLING ===
+validation_errors:
+  cross_topic_contamination:
+    action: "REJECT_GENERATION"
+    message: "Slot {slot_id} contains forbidden topic {forbidden_topic} - only allowed in {correct_slot}"
+
+  missing_sku_truth_data:
+    action: "BLOCK_SLOT"
+    message: "Cannot generate {slot_id} - missing required sku_truth field {field_name}"
+
+  hands_blocking_structure:
+    action: "REJECT_GENERATION"
+    message: "usage-demo slot violates hands_blocking_structure constraint"
+
+  invented_packaging:
+    action: "BLOCK_UNBOXING"
+    message: "Cannot generate packaging elements without real packaging.reference_files"
