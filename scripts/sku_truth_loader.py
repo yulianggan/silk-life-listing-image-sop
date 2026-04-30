@@ -211,6 +211,9 @@ def build_sku_truth(
     sku_id: Optional[str] = None,
     comm_dir: Optional[Path] = None,
     canvas_override: Optional[Dict[str, Any]] = None,
+    comm_digest_max_images: int = 12,
+    comm_digest_parallel: int = 3,
+    skip_comm_digest: bool = False,
 ) -> Dict[str, Any]:
     rows = _load_xlsx_rows(listing_xlsx)
     title_ru = _row_lookup(rows, "Заголовок") or ""
@@ -288,8 +291,31 @@ def build_sku_truth(
         canvas.update(canvas_override)
     canvas["customer_override"] = canvas_override or None
 
+    # Comm imagery digest (gpt-5.5 vision auto-extraction). Cached by content hash.
+    comm_digest: Dict[str, Any] = {}
+    if comm_dir and comm_dir.exists() and not skip_comm_digest:
+        try:
+            import comm_imagery_digest  # type: ignore
+            comm_digest = comm_imagery_digest.scan_comm_dir(
+                comm_dir,
+                max_images=comm_digest_max_images,
+                parallel=comm_digest_parallel,
+            )
+            # Promote selling_point_phrases that look like dimensions back into dimensions.raw_hits
+            for sp in comm_digest.get("selling_point_phrases", []) or []:
+                more = _extract_dimensions(sp)
+                for h in more:
+                    if not any(abs(h["value_cm"] - existing["value_cm"]) < 0.01 for existing in dim_hits):
+                        h["from_comm_digest"] = True
+                        dim_hits.append(h)
+            dimensions["source"] = "listing_xlsx + comm_digest"
+        except ImportError:
+            comm_digest = {"error": "comm_imagery_digest module not importable"}
+        except Exception as e:
+            comm_digest = {"error": f"comm digest scan failed: {e}"[:200]}
+
     return {
-        "schema_version": "v7.0",
+        "schema_version": "v7.1",
         "canvas": canvas,
         "identity": identity,
         "dimensions": dimensions,
@@ -298,10 +324,13 @@ def build_sku_truth(
         "use_cases": use_cases,
         "packaging": packaging,
         "product_grade_anchor": grade_anchor,
+        "comm_imagery_digest": comm_digest,
         "_diagnostics": {
             "raw_rows_count": len(rows),
             "dim_hits_count": len(dim_hits),
             "use_cases_count": len(use_cases),
+            "comm_digest_images": comm_digest.get("image_count", 0) if isinstance(comm_digest, dict) else 0,
+            "comm_digest_selling_points": len(comm_digest.get("selling_point_phrases", [])) if isinstance(comm_digest, dict) else 0,
         },
     }
 
@@ -327,6 +356,15 @@ def render_summary(sku_truth: Dict[str, Any]) -> str:
         parts.append(f"Packaging refs: {len(pkg['reference_files'])} file(s)")
     else:
         parts.append("Packaging: NO real reference (skip packaging/unboxing slots)")
+    # Comm imagery digest
+    digest = sku_truth.get("comm_imagery_digest", {})
+    if isinstance(digest, dict) and digest.get("image_count"):
+        sps = digest.get("selling_point_phrases", []) or []
+        if sps:
+            parts.append("Verified comm selling points: " + " / ".join(f'"{s}"' for s in sps[:8]))
+        sl = digest.get("slot_layout_refs", {}) or {}
+        if sl:
+            parts.append("Comm imagery has design refs for slots: " + ", ".join(f"{k}({len(v)})" for k, v in sl.items()))
     return "\n".join(parts)
 
 

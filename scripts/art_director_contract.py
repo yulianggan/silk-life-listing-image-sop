@@ -1203,6 +1203,87 @@ def _v7_archetype_clause(sku_truth: Dict[str, Any]) -> str:
     return archetype_words.get(arch, "consumer product")
 
 
+def _v7_comm_digest_clauses(sku_truth: Dict[str, Any], slot_id: str) -> Dict[str, str]:
+    """Extract slot-relevant phrases from comm_imagery_digest.
+
+    Returns dict with optional clauses:
+      - selling_points_line: ", ".join(top relevant phrases)
+      - scene_props_line: workspace prop list per archetype
+      - russian_translations: hint to translate English phrases to Russian
+    """
+    digest = sku_truth.get("comm_imagery_digest", {}) or {}
+    if not isinstance(digest, dict) or "error" in digest:
+        return {}
+
+    sps = digest.get("selling_point_phrases", []) or []
+    props = digest.get("scene_props", []) or []
+    palette = digest.get("palette", []) or []
+    arch = sku_truth.get("identity", {}).get("archetype", "generic")
+
+    # Slot-relevant filtering (heuristic — keep top 3-5 per slot)
+    relevant_sps: List[str] = []
+    if slot_id in {"hero-product"}:
+        # Hero loves portability / value words
+        for sp in sps:
+            if any(k in sp.lower() for k in ["portable", "lightweight", "design", "premium", "kit"]):
+                relevant_sps.append(sp)
+        relevant_sps = relevant_sps[:3]
+    elif slot_id == "thin-blades":
+        for sp in sps:
+            if any(k in sp.lower() for k in ["clip", "carry", "weight", "lightweight", "лёгк"]):
+                relevant_sps.append(sp)
+        relevant_sps = relevant_sps[:4]
+    elif slot_id == "size-spec":
+        # Size-spec wants dimension hits already promoted into dimensions; nothing extra
+        pass
+    elif slot_id in {"steps-123", "scene-grid", "usage-demo"}:
+        for sp in sps:
+            # Use-cases tokens
+            if len(sp) <= 30 and not sp.isupper():
+                relevant_sps.append(sp)
+        relevant_sps = relevant_sps[:6]
+    elif slot_id == "product-callouts":
+        for sp in sps:
+            if len(sp) <= 30:
+                relevant_sps.append(sp)
+        relevant_sps = relevant_sps[:5]
+    elif slot_id == "home-salon-scene":
+        # Reuse observed scene props for archetype-correct setting
+        pass
+
+    # archetype-correct workspace props (overrides default美容台面 for office_craft)
+    workspace_props = ""
+    if slot_id == "home-salon-scene" and arch == "office_craft":
+        # office_craft = workshop/workspace tabletop
+        workspace_props = (
+            "Set: workshop / workspace tabletop (light grey or kraft surface). "
+            "Real props from comm imagery: green cutting mat with grid, transparent or metal ruler, "
+            "rolled wallpaper edge, paper sheets, thin packing tape — small selection only, never crowded. "
+            "DO NOT use linen towel / ceramic dish / greenery sprig / cosmetic styling props."
+        )
+    elif slot_id == "home-salon-scene" and arch == "grooming_tool":
+        workspace_props = (
+            "Set: clean grooming tabletop. Real props: linen towel corner, small clean glass nail file, plain ceramic dish."
+        )
+    elif slot_id == "home-salon-scene":
+        # Generic
+        workspace_props = "Set: minimal styled tabletop matching the product's actual use context."
+
+    out: Dict[str, str] = {}
+    if relevant_sps:
+        out["selling_points_line"] = (
+            "Verified comm-imagery selling points (use these phrases, translate any English to Russian for overlays): "
+            + " / ".join(f'"{s}"' for s in relevant_sps)
+        )
+    if workspace_props:
+        out["scene_props_line"] = workspace_props
+    if palette and slot_id in {"hero-product", "thin-blades"}:
+        # Optional: hint at observed brand palette
+        observed = ", ".join(palette[:3])
+        out["palette_hint"] = f"Observed brand palette in comm imagery: {observed}. You may borrow this mood while keeping v7 design tokens for the text pills."
+    return out
+
+
 def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
     """Compose a v7 native-text edit-mode prompt from sku_truth + slot_id.
 
@@ -1226,17 +1307,28 @@ def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
     dim_line = _v7_dimensions_clause(sku_truth.get("dimensions", {}))
     use_line = _v7_use_cases_clause(sku_truth.get("use_cases", []))
 
+    digest_clauses = _v7_comm_digest_clauses(sku_truth, slot_id)
+    digest_sps = digest_clauses.get("selling_points_line", "")
+    digest_props = digest_clauses.get("scene_props_line", "")
+    digest_palette = digest_clauses.get("palette_hint", "")
+
     head = (
         f"Vertical {aspect} ({size}) Russian Ozon listing image of the SAME {product} from the reference "
         f"({archetype}). {V7_FIDELITY_HEADER}"
     )
 
     if slot_id == "hero-product":
+        # Use a SHORT product name for hero (full title is too long per user feedback)
+        short_name = product.split(",")[0].split(":")[0].strip()
+        if len(short_name) > 36:
+            short_name = " ".join(short_name.split()[:3])
         body = (
             f"Slot: hero-product — first impression, identification. "
-            f"Clean light technical background. {material_line}. "
-            f"Render text — top-center title pill (navy, white): \"{product}\"; "
-            f"below grey subtitle: 1-line short feature line; bottom-right small soft-green badge: 1-line short use line."
+            f"Clean light technical background, dramatic studio lighting. {material_line}. "
+            f"{digest_palette} "
+            f"Render text — top-center title pill (navy, white): \"{short_name}\" (≤2 lines, ≤30 chars per line); "
+            f"below grey subtitle: 1-line short feature line; bottom-right small soft-green badge: 1-line short use line. "
+            f"{digest_sps}"
         )
     elif slot_id == "size-spec":
         body = (
@@ -1247,10 +1339,12 @@ def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
         )
     elif slot_id == "thin-blades":
         body = (
-            f"Slot: thin-blades feature highlight — show blade slim profile from clean side/quarter angle, "
+            f"Slot: feature highlight — show blade slim profile from clean side/quarter angle, "
             f"closed posture matching reference. {material_line}. "
-            f"Render text — top-center title pill (navy, white): \"ТОНКИЕ ЛЕЗВИЯ\"; "
-            f"subtitle grey: \"для точного реза\"; bottom soft-green pill: 1-line claim from listing."
+            f"{digest_palette} "
+            f"Render text — top-center title pill (navy, white): \"ТОНКИЕ ЛЕЗВИЯ\" or use a more relevant verified comm phrase if available; "
+            f"subtitle grey: \"для точного реза\"; bottom soft-green pill: 1-line claim. "
+            f"{digest_sps}"
         )
     elif slot_id == "material-macro":
         body = (
@@ -1286,15 +1380,23 @@ def build_v7_prompt(sku_truth: Dict[str, Any], slot_id: str) -> str:
         if pkg.get("has_real_reference_image"):
             body = (
                 f"Slot: home-salon-scene — product on a styled tabletop with the verified packaging reference. "
+                f"{digest_props} "
                 f"Render text — top-center title pill (navy, white): \"ИДЕАЛЬНЫЙ ВЫБОР\"; "
                 f"bottom soft-green pill: 1-line use-context line."
             )
         else:
+            # Use archetype-correct workspace props from comm digest (avoids 美容台面 leak for office_craft)
+            scene_clause = digest_props or (
+                "Set: minimal styled tabletop with generic real props matching the product's actual usage context. "
+                "NO branded packaging, NO gift box, NO logo."
+            )
+            arch = sku_truth.get("identity", {}).get("archetype", "generic")
+            title_text = "В РАБОТЕ И ДОМА" if arch == "office_craft" else "ДОМА И В САЛОНЕ"
             body = (
-                f"Slot: home-salon-scene — product on a styled tabletop with generic real props (linen towel corner, "
-                f"natural greenery, plain ceramic dish). NO branded packaging, NO gift box, NO logo. "
-                f"Render text — top-center title pill (navy, white): \"ДОМА И В САЛОНЕ\"; "
-                f"bottom soft-green pill: 1-line ежедневное use-context line."
+                f"Slot: home-salon-scene — product on a styled tabletop. "
+                f"{scene_clause} "
+                f"Render text — top-center title pill (navy, white): \"{title_text}\"; "
+                f"bottom soft-green pill: 1-line use-context line."
             )
     else:
         body = ""
